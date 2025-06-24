@@ -5,7 +5,6 @@ import { useContextAnalyzer } from './hooks/useContextAnalyzer';
 import { AIMessage, UserMessage, SystemMessage } from './types';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
-import QuickActions from './QuickActions';
 import { useUser } from '../../contexts/UserContext';
 
 interface AIAssistantProps {
@@ -22,42 +21,129 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
   const [isThinking, setIsThinking] = useState(false);
   const [currentSuggestions, setCurrentSuggestions] = useState<string[]>([]);
   const [processingStatus, setProcessingStatus] = useState<string>('');
+  const [isActive, setIsActive] = useState(true);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const responseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { user } = useUser();
   const { sendMessage: sendWebSocketMessage, lastMessage, connectionState, error } = useWebSocket();
   const { analyzeCurrentContext, getRelevantContent } = useContextAnalyzer();
 
-  // Initialize with personalized welcome message
+  // Initialize with enhanced welcome message and proactive suggestions
   useEffect(() => {
     if (messages.length === 0) {
       const welcomeMessage: AIMessage = {
         id: Date.now().toString(),
         type: 'ai',
         content: user 
-          ? `Hello ${user.username}! 👋 I'm your AI Gaming assistant powered by advanced neural networks. I can help you with personalized game recommendations, DeFi strategies, portfolio optimization, and real-time market insights. What would you like to explore today?`
-          : "Hello! I'm your AI Gaming assistant powered by advanced neural networks. I provide intelligent insights, personalized recommendations, and real-time assistance for all your gaming and DeFi needs. Connect your wallet for personalized assistance!",
+          ? `🚀 **Welcome back, ${user.username}!** I'm your AI Gaming assistant with advanced neural processing capabilities.
+
+I've analyzed your profile and I'm ready to help you optimize your gaming experience:
+
+📊 **Your Current Status:**
+• Level ${user.level} player with ${user.stats.gamesPlayed} games played
+• Portfolio value: $${(user.balances.AGT * 5 + user.balances.NFT * 87.5).toFixed(2)}
+• Win rate: ${user.stats.winRate}% (${user.stats.winRate > 70 ? 'Excellent!' : user.stats.winRate > 60 ? 'Good performance' : 'Room for improvement'})
+
+💡 **I can help you with:**
+• Real-time performance analysis and optimization
+• Personalized game recommendations based on your skill level
+• Portfolio management and earning strategies
+• Market insights and investment opportunities
+• Tournament matching and strategy planning
+
+What would you like to explore first? I'm actively monitoring the platform for opportunities that match your profile!`
+          : `🤖 **Hello! I'm your AI Gaming assistant** powered by advanced neural networks and real-time data processing.
+
+I provide intelligent, personalized assistance for all aspects of our gaming ecosystem:
+
+🎮 **Platform Overview:**
+• 47+ AI-powered games across multiple categories
+• DeFi staking with up to 35.8% APY
+• NFT marketplace with utility-focused assets
+• Tournaments with $8K-75K prize pools
+• Advanced analytics and performance tracking
+
+🧠 **My Capabilities:**
+• Real-time market analysis and trend prediction
+• Personalized game and investment recommendations
+• Performance optimization strategies
+• Risk assessment and portfolio management
+• Intelligent learning from your preferences
+
+Connect your wallet for personalized insights, or ask me anything about our platform! I'm actively monitoring for the best opportunities.`,
         timestamp: new Date(),
         confidence: 1.0,
         context: 'welcome',
         suggestions: user ? [
-          `Analyze my ${user.stats.gamesPlayed} games performance`,
-          `Optimize my $${user.stats.totalEarnings.toFixed(2)} portfolio`,
-          'Show me personalized earning strategies'
+          `Analyze my ${user.stats.gamesPlayed} games performance and suggest improvements`,
+          `Optimize my $${(user.balances.AGT * 5 + user.balances.NFT * 87.5).toFixed(2)} portfolio allocation`,
+          'Show me personalized earning opportunities right now'
         ] : [
-          'How do I get started with AI Gaming?',
-          'What are the best games for beginners?',
-          'Explain the DeFi features available'
+          'Show me the best games for beginners to start earning',
+          'Explain how DeFi staking works and calculate potential returns',
+          'What are the current market trends and opportunities?'
         ]
       };
       setMessages([welcomeMessage]);
       setCurrentSuggestions(welcomeMessage.suggestions || []);
+      
+      // Start proactive monitoring
+      startProactiveMonitoring();
     }
+  }, [user]);
+
+  // Proactive AI monitoring and suggestions
+  const startProactiveMonitoring = useCallback(() => {
+    // Monitor user activity and provide proactive suggestions
+    const monitoringInterval = setInterval(() => {
+      if (isActive && user) {
+        // Simulate real-time market analysis
+        const marketInsights = generateMarketInsights();
+        if (marketInsights && Math.random() > 0.7) { // 30% chance every 30 seconds
+          const proactiveMessage: AIMessage = {
+            id: Date.now().toString(),
+            type: 'ai',
+            content: marketInsights,
+            timestamp: new Date(),
+            confidence: 0.9,
+            context: 'proactive',
+            suggestions: [
+              'Tell me more about this opportunity',
+              'Calculate potential returns',
+              'Show me how to take action'
+            ]
+          };
+          setMessages(prev => [...prev, proactiveMessage]);
+        }
+      }
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(monitoringInterval);
+  }, [isActive, user]);
+
+  // Generate proactive market insights
+  const generateMarketInsights = useCallback(() => {
+    if (!user) return null;
+
+    const insights = [
+      `🔥 **Market Alert:** Tournament Pool APY just increased to 36.2%! With your ${user.balances.AGT} AGT tokens, you could earn an additional $${((user.balances.AGT * 0.362) / 12).toFixed(2)} monthly.`,
+      
+      `📈 **Performance Insight:** Players with similar stats to yours (${user.stats.winRate}% win rate) are earning 23% more by focusing on strategy games. Want me to recommend optimal games?`,
+      
+      `💎 **NFT Opportunity:** Legendary items in your favorite game category are trending up 15% this week. Your ${user.balances.NFT} NFT tokens could be optimized for better returns.`,
+      
+      `🏆 **Tournament Match:** Found 3 tournaments perfect for your skill level starting soon. Entry fees total ${25 + 15 + 10} AGT with combined prize pools of $90K.`,
+      
+      `⚡ **Portfolio Alert:** Your current allocation could be optimized for 18% better returns. I've identified rebalancing opportunities in your ${(user.balances.AGT * 5 + user.balances.NFT * 87.5).toFixed(0)} portfolio.`
+    ];
+
+    return insights[Math.floor(Math.random() * insights.length)];
   }, [user]);
 
   // Handle incoming WebSocket messages
@@ -120,29 +206,29 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
     }
   }, [isMinimized]);
 
-  // Real-time typing detection with AI processing simulation
+  // Real-time typing detection with enhanced AI processing simulation
   useEffect(() => {
     if (userInput.length > 0) {
       setIsThinking(true);
-      setProcessingStatus('Analyzing input...');
+      setProcessingStatus('Analyzing input with neural networks...');
       
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
       
       typingTimeoutRef.current = setTimeout(() => {
-        setProcessingStatus('Processing context...');
+        setProcessingStatus('Processing context and user data...');
         
         setTimeout(() => {
-          setProcessingStatus('Generating suggestions...');
+          setProcessingStatus('Generating intelligent suggestions...');
           generateRealTimeSuggestions(userInput);
           
           setTimeout(() => {
             setIsThinking(false);
             setProcessingStatus('');
           }, 500);
-        }, 300);
-      }, 800);
+        }, 400);
+      }, 600);
     } else {
       setIsThinking(false);
       setProcessingStatus('');
@@ -158,6 +244,36 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
     };
   }, [userInput]);
 
+  // Activity monitoring
+  useEffect(() => {
+    const resetActivityTimer = () => {
+      setIsActive(true);
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current);
+      }
+      activityTimeoutRef.current = setTimeout(() => {
+        setIsActive(false);
+      }, 300000); // 5 minutes of inactivity
+    };
+
+    resetActivityTimer();
+    
+    const handleActivity = () => resetActivityTimer();
+    
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keypress', handleActivity);
+    window.addEventListener('scroll', handleActivity);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keypress', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -166,100 +282,64 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
     const lowerInput = input.toLowerCase();
     let suggestions: string[] = [];
 
-    // Advanced context-aware suggestions
+    // Enhanced context-aware suggestions with real-time data
     if (lowerInput.includes('game') || lowerInput.includes('play')) {
       if (user) {
         suggestions = [
-          `Recommend games based on my ${user.stats.winRate}% win rate`,
-          `Show games that match my ${user.level} skill level`,
-          `Find games with highest ROI for my playstyle`
+          `Analyze my ${user.stats.winRate}% win rate and recommend optimal games`,
+          `Show games with highest ROI for level ${user.level} players`,
+          `Find trending games that match my ${user.stats.gamesPlayed} games experience`
         ];
       } else {
         suggestions = [
-          'Show me the highest earning games',
-          'What games are best for beginners?',
-          'Recommend games for my playstyle'
+          'Show me the highest earning games available right now',
+          'What games are trending and why should I play them?',
+          'Recommend games based on current market conditions'
         ];
       }
     } else if (lowerInput.includes('earn') || lowerInput.includes('money') || lowerInput.includes('profit')) {
       if (user) {
         suggestions = [
-          `Optimize my $${user.stats.totalEarnings.toFixed(2)} portfolio`,
-          `Calculate potential earnings with ${user.balances.AGT} AGT`,
-          'Show me the best earning strategies for my level'
+          `Optimize my $${(user.balances.AGT * 5 + user.balances.NFT * 87.5).toFixed(2)} portfolio for maximum returns`,
+          `Calculate real-time earning potential with my ${user.balances.AGT} AGT tokens`,
+          'Show me the best earning strategies based on current market trends'
         ];
       } else {
         suggestions = [
-          'Calculate my potential daily earnings',
-          'Show me the best earning strategies',
-          'Compare gaming vs staking rewards'
+          'Calculate my potential daily earnings with current market rates',
+          'Show me the most profitable strategies right now',
+          'Compare all earning methods and their current returns'
         ];
       }
-    } else if (lowerInput.includes('stak') || lowerInput.includes('defi')) {
-      if (user) {
-        suggestions = [
-          `Best staking pool for my ${user.balances.AGT} AGT tokens`,
-          'Calculate my optimal staking strategy',
-          'Compare all staking pools for maximum yield'
-        ];
-      } else {
-        suggestions = [
-          'Which staking pool offers the best returns?',
-          'Calculate my staking rewards',
-          'Explain staking risks and benefits'
-        ];
-      }
+    } else if (lowerInput.includes('market') || lowerInput.includes('trend') || lowerInput.includes('price')) {
+      suggestions = [
+        'Analyze current market trends and predict price movements',
+        'Show me real-time opportunities in the marketplace',
+        'What are the best investment opportunities right now?'
+      ];
     } else if (lowerInput.includes('tournament') || lowerInput.includes('compete')) {
       if (user) {
         suggestions = [
-          `Find tournaments matching my ${user.stats.winRate}% win rate`,
-          'Calculate tournament ROI for my skill level',
-          'Show upcoming tournaments I can afford'
+          `Find tournaments matching my ${user.stats.winRate}% win rate and skill level`,
+          'Calculate tournament ROI and recommend the best competitions',
+          'Show upcoming tournaments with optimal entry fees for my budget'
         ];
       } else {
         suggestions = [
-          'Show me upcoming tournaments I can join',
-          'What tournaments match my skill level?',
-          'Calculate tournament ROI'
-        ];
-      }
-    } else if (lowerInput.includes('nft') || lowerInput.includes('marketplace')) {
-      if (user) {
-        suggestions = [
-          `Find NFTs under ${user.balances.AGT} AGT budget`,
-          'Analyze trending NFTs for investment',
-          'Show NFTs that boost my game performance'
-        ];
-      } else {
-        suggestions = [
-          'Show me trending NFTs in my price range',
-          'Analyze NFT market trends',
-          'Recommend NFTs for my games'
-        ];
-      }
-    } else if (lowerInput.includes('portfolio') || lowerInput.includes('balance')) {
-      if (user) {
-        suggestions = [
-          'Analyze my current portfolio allocation',
-          'Suggest portfolio rebalancing strategy',
-          'Calculate my portfolio performance metrics'
-        ];
-      } else {
-        suggestions = [
-          'How should I allocate my portfolio?',
-          'What\'s the optimal token distribution?',
-          'Explain portfolio management strategies'
+          'Show me upcoming tournaments and their prize pools',
+          'What tournaments should beginners start with?',
+          'Calculate tournament ROI and winning strategies'
         ];
       }
     } else {
       suggestions = user ? [
-        'Analyze my gaming performance trends',
-        'Optimize my earning strategy',
-        'Show personalized recommendations'
+        'Provide real-time analysis of my gaming performance',
+        'Show me personalized opportunities based on current market data',
+        'Optimize my strategy using AI-powered insights'
       ] : [
-        'Tell me about platform features',
-        'Help me get started',
-        'Show me earning opportunities'
+        'Give me a real-time overview of platform opportunities',
+        'Show me the best ways to get started and earn quickly',
+        'Analyze current market conditions and trends'
       ];
     }
 
@@ -280,15 +360,16 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
     setUserInput('');
     setIsTyping(true);
     setIsThinking(false);
-    setProcessingStatus('Processing your request...');
+    setProcessingStatus('Processing your request with advanced AI...');
 
-    // Simulate advanced AI processing stages
+    // Enhanced AI processing stages
     const processingStages = [
-      'Analyzing query context...',
-      'Accessing neural networks...',
-      'Processing user data...',
-      'Generating intelligent response...',
-      'Optimizing recommendations...'
+      'Analyzing query with neural networks...',
+      'Accessing real-time market data...',
+      'Processing your user profile and preferences...',
+      'Generating personalized insights...',
+      'Optimizing recommendations with AI algorithms...',
+      'Finalizing intelligent response...'
     ];
 
     let stageIndex = 0;
@@ -298,16 +379,16 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
         stageIndex++;
       } else {
         clearInterval(stageInterval);
-        setProcessingStatus('Finalizing response...');
+        setProcessingStatus('Delivering optimized response...');
       }
-    }, 600);
+    }, 700);
 
     try {
-      // Analyze current page context
+      // Enhanced context analysis
       const context = analyzeCurrentContext();
       const relevantContent = getRelevantContent(userInput.trim());
 
-      // Prepare enhanced message payload with user context
+      // Prepare enhanced message payload with real-time data
       const messagePayload = {
         message: userInput.trim(),
         context: {
@@ -323,7 +404,12 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
             stats: user.stats,
             isOnboarded: user.isOnboarded,
             username: user.username
-          } : null
+          } : null,
+          marketData: {
+            timestamp: new Date().toISOString(),
+            activeUsers: Math.floor(Math.random() * 1000) + 5000,
+            totalValueLocked: Math.floor(Math.random() * 100000) + 4850000
+          }
         },
         conversationHistory: messages.slice(-10)
       };
@@ -335,7 +421,7 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
       responseTimeoutRef.current = setTimeout(() => {
         clearInterval(stageInterval);
         setProcessingStatus('');
-      }, 8000);
+      }, 10000);
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -351,11 +437,6 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
       setIsTyping(false);
       setProcessingStatus('');
     }
-  };
-
-  const handleQuickAction = (action: string) => {
-    setUserInput(action);
-    setTimeout(() => sendMessage(), 100);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -384,18 +465,18 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
     const welcomeMessage: AIMessage = {
       id: Date.now().toString(),
       type: 'ai',
-      content: "Neural networks reset! I'm ready to provide fresh insights and personalized recommendations. What would you like to explore?",
+      content: "🔄 **Neural networks reset!** I'm ready to provide fresh insights and real-time analysis. My AI systems are now recalibrated and monitoring current market conditions for optimal opportunities.",
       timestamp: new Date(),
       confidence: 1.0,
       context: 'reset',
       suggestions: user ? [
-        'Analyze my current performance',
-        'Show optimization opportunities',
-        'Recommend next actions'
+        'Analyze my current performance with fresh perspective',
+        'Show me real-time optimization opportunities',
+        'Recommend immediate actions based on current data'
       ] : [
-        'Show me platform overview',
-        'Help me get started',
-        'Explain earning opportunities'
+        'Give me a current platform overview and opportunities',
+        'Show me the best ways to start earning right now',
+        'Analyze current market trends and entry points'
       ]
     };
     setMessages([welcomeMessage]);
@@ -419,21 +500,21 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
   const getConnectionStatus = () => {
     switch (connectionState) {
       case 'connected':
-        return 'AI Neural Network Online';
+        return 'AI Neural Network Online • Real-time Analysis Active';
       case 'connecting':
-        return 'Connecting to AI Core...';
+        return 'Connecting to AI Core Systems...';
       case 'error':
-        return 'Local Intelligence Mode';
+        return 'Local Intelligence Mode • Limited Features';
       case 'disconnected':
-        return 'Offline Processing';
+        return 'Offline Processing • Reconnecting...';
       default:
-        return 'Initializing...';
+        return 'Initializing AI Systems...';
     }
   };
 
   if (!isVisible) return null;
 
-  // Minimized state with enhanced design
+  // Enhanced minimized state with activity indicators
   if (isMinimized) {
     return (
       <div className="fixed bottom-4 right-4 z-50">
@@ -441,13 +522,15 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
           onClick={() => setIsMinimized(false)}
           className="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white p-4 rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 group overflow-hidden"
         >
-          {/* Animated background */}
+          {/* Enhanced animated background */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-indigo-500/20 animate-pulse"></div>
           
-          {/* Geometric patterns */}
-          <div className="absolute inset-0 opacity-20">
+          {/* Neural network visualization */}
+          <div className="absolute inset-0 opacity-30">
             <Hexagon className="absolute top-1 left-1 w-3 h-3 text-white animate-spin" style={{ animationDuration: '8s' }} />
             <Stars className="absolute bottom-1 right-1 w-3 h-3 text-white animate-pulse" />
+            <div className="absolute top-2 right-2 w-1 h-1 bg-green-400 rounded-full animate-ping"></div>
+            <div className="absolute bottom-2 left-2 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
           </div>
           
           {/* Main bot icon */}
@@ -458,15 +541,22 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
             {getConnectionIcon()}
           </div>
           
+          {/* Activity indicator */}
+          {isActive && (
+            <div className="absolute -top-2 -left-2 bg-green-500 rounded-full p-1">
+              <Activity className="w-3 h-3 text-white animate-pulse" />
+            </div>
+          )}
+          
           {/* Thinking indicator */}
           {isThinking && (
-            <div className="absolute -top-2 -left-2 bg-yellow-500 rounded-full p-1">
+            <div className="absolute -bottom-1 -left-1 bg-yellow-500 rounded-full p-1">
               <Brain className="w-3 h-3 text-white animate-pulse" />
             </div>
           )}
           
-          {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity blur-xl"></div>
+          {/* Enhanced glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-40 transition-opacity blur-xl"></div>
         </button>
       </div>
     );
@@ -478,10 +568,10 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
 
   return (
     <div className={containerClasses}>
-      {/* Animated background overlay */}
+      {/* Enhanced animated background overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-blue-900/10 to-indigo-900/10 animate-pulse"></div>
       
-      {/* Geometric pattern overlay */}
+      {/* Enhanced geometric pattern overlay */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-4 left-4">
           <Layers className="w-8 h-8 text-purple-400 animate-spin" style={{ animationDuration: '20s' }} />
@@ -492,38 +582,49 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
         <div className="absolute bottom-8 left-8">
           <Stars className="w-5 h-5 text-indigo-400 animate-bounce" style={{ animationDuration: '3s' }} />
         </div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+        </div>
       </div>
 
-      {/* Header with enhanced design */}
+      {/* Enhanced header with real-time status */}
       <div className="relative bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 p-4 flex items-center justify-between flex-shrink-0 overflow-hidden">
-        {/* Animated background patterns */}
+        {/* Enhanced animated background patterns */}
         <div className="absolute inset-0 bg-gradient-to-r from-purple-700/30 via-blue-700/30 to-indigo-700/30 animate-pulse"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]"></div>
         
-        {/* Neural network pattern */}
+        {/* Enhanced neural network pattern */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-2 left-8 w-1 h-1 bg-white rounded-full animate-ping"></div>
           <div className="absolute top-6 left-12 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
           <div className="absolute top-4 right-16 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
           <div className="absolute bottom-4 left-16 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '1.5s' }}></div>
+          <div className="absolute top-8 left-20 w-1 h-1 bg-white rounded-full animate-ping" style={{ animationDelay: '2s' }}></div>
         </div>
         
         <div className="flex items-center space-x-3 relative z-10">
           <div className="relative">
-            {/* Main bot icon with glow */}
+            {/* Enhanced main bot icon with glow */}
             <div className="relative bg-white/20 backdrop-blur-sm rounded-xl p-2">
               <Bot className="w-6 h-6 text-white" />
               <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-blue-400 rounded-xl opacity-30 animate-pulse"></div>
             </div>
             
-            {/* Status indicator */}
+            {/* Enhanced status indicator */}
             <div className="absolute -bottom-1 -right-1 bg-gray-900 rounded-full p-1">
               {getConnectionIcon()}
             </div>
             
+            {/* Activity indicator */}
+            {isActive && (
+              <div className="absolute -top-1 -left-1 bg-green-500 rounded-full p-1">
+                <Activity className="w-3 h-3 text-white animate-pulse" />
+              </div>
+            )}
+            
             {/* Thinking indicator */}
             {isThinking && (
-              <div className="absolute -top-1 -left-1 bg-yellow-500 rounded-full p-1">
+              <div className="absolute top-0 left-0 bg-yellow-500 rounded-full p-1 transform -translate-x-1 -translate-y-1">
                 <Sparkles className="w-3 h-3 text-white animate-spin" />
               </div>
             )}
@@ -534,7 +635,7 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
               <span className="text-white font-bold text-lg">AI Gaming Assistant</span>
               <div className="flex items-center space-x-1">
                 <Zap className="w-4 h-4 text-yellow-300 animate-pulse" />
-                <span className="text-xs bg-white/20 text-white px-2 py-1 rounded-full font-semibold">PRO</span>
+                <span className="text-xs bg-white/20 text-white px-2 py-1 rounded-full font-semibold">ACTIVE</span>
               </div>
             </div>
             <div className="text-white/80 text-xs flex items-center space-x-2">
@@ -569,7 +670,7 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
         </div>
       </div>
 
-      {/* Processing Status with enhanced design */}
+      {/* Enhanced processing Status */}
       {(isTyping || processingStatus) && (
         <div className="px-4 py-3 bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-indigo-900/20 border-b border-gray-700/50 backdrop-blur-sm">
           <div className="flex items-center space-x-3">
@@ -579,13 +680,14 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
             </div>
             <div className="flex-1">
               <span className="text-purple-300 text-sm font-medium">
-                {processingStatus || 'AI is processing your request...'}
+                {processingStatus || 'AI is processing your request with advanced neural networks...'}
               </span>
               <div className="flex items-center space-x-1 mt-1">
                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                 <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
               </div>
             </div>
             <Cpu className="w-4 h-4 text-blue-400 animate-spin" />
@@ -593,13 +695,13 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
         </div>
       )}
 
-      {/* Chat Area with enhanced styling */}
+      {/* Enhanced chat Area */}
       <div 
         ref={chatContainerRef}
         className="flex-1 p-4 overflow-y-auto space-y-4 min-h-0 bg-gradient-to-b from-gray-900/50 to-gray-800/50 backdrop-blur-sm relative"
         style={{ scrollBehavior: 'smooth' }}
       >
-        {/* Subtle pattern overlay */}
+        {/* Enhanced pattern overlay */}
         <div className="absolute inset-0 opacity-5 pointer-events-none">
           <div className="w-full h-full bg-[radial-gradient(circle_at_25%_25%,rgba(147,51,234,0.1),transparent_50%)]"></div>
           <div className="w-full h-full bg-[radial-gradient(circle_at_75%_75%,rgba(59,130,246,0.1),transparent_50%)]"></div>
@@ -616,13 +718,13 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
         </div>
       </div>
 
-      {/* Real-time Suggestions with enhanced design */}
+      {/* Enhanced Real-time Suggestions */}
       {currentSuggestions.length > 0 && !isTyping && (
         <div className="px-4 py-3 border-t border-gray-700/50 bg-gradient-to-r from-gray-800/50 via-gray-700/50 to-gray-800/50 backdrop-blur-sm">
           <div className="text-xs text-gray-400 mb-3 flex items-center space-x-2">
             <div className="flex items-center space-x-1">
               <Brain className="w-3 h-3 text-purple-400" />
-              <span className="font-medium">AI Suggestions:</span>
+              <span className="font-medium">AI Smart Suggestions:</span>
             </div>
             <div className="flex space-x-1">
               <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse"></div>
@@ -644,14 +746,7 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
         </div>
       )}
 
-      {/* Quick Actions */}
-      {messages.length <= 1 && (
-        <div className="flex-shrink-0">
-          <QuickActions onActionClick={handleQuickAction} />
-        </div>
-      )}
-
-      {/* Input Area with enhanced design */}
+      {/* Enhanced Input Area */}
       <div className="p-4 border-t border-gray-700/50 flex-shrink-0 bg-gradient-to-r from-gray-800/50 via-gray-700/50 to-gray-800/50 backdrop-blur-sm">
         <div className="flex items-center space-x-3">
           <div className="flex-1 relative">
@@ -680,13 +775,13 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
             disabled={!userInput.trim() || isTyping}
             className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 disabled:from-gray-600 disabled:via-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-all duration-200 flex items-center justify-center relative group overflow-hidden"
           >
-            {/* Animated background */}
+            {/* Enhanced animated background */}
             <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             
             {/* Icon */}
             <Send className="w-4 h-4 relative z-10 group-hover:scale-110 transition-transform" />
             
-            {/* Glow effect */}
+            {/* Enhanced glow effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 group-hover:opacity-50 transition-opacity blur-lg"></div>
           </button>
         </div>
@@ -695,6 +790,12 @@ export default function AIAssistant({ onClose, isVisible }: AIAssistantProps) {
           <span className="flex items-center space-x-2">
             <Zap className="w-3 h-3 text-purple-400" />
             <span>Press Enter to send • Shift+Enter for new line</span>
+            {isActive && (
+              <span className="flex items-center space-x-1 text-green-400">
+                <Activity className="w-3 h-3" />
+                <span>Active</span>
+              </span>
+            )}
           </span>
           <button
             onClick={clearConversation}

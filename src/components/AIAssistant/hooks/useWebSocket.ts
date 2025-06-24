@@ -24,7 +24,7 @@ export function useWebSocket(): UseWebSocketReturn {
       setConnectionState('connecting');
       setError(null);
 
-      // Always use mock implementation for production
+      // Always use enhanced mock implementation
       setTimeout(() => {
         setConnectionState('connected');
         setError(null);
@@ -57,19 +57,22 @@ export function useWebSocket(): UseWebSocketReturn {
     try {
       const messageData = JSON.parse(message);
       
-      // Simulate realistic processing delay based on message complexity
-      const processingTime = Math.min(2000 + (messageData.message.length * 50), 5000);
+      // Enhanced realistic processing delay based on message complexity and context
+      const baseProcessingTime = 2000;
+      const complexityMultiplier = Math.min(messageData.message.length * 30, 3000);
+      const contextMultiplier = messageData.context?.userProfile ? 500 : 0;
+      const processingTime = Math.min(baseProcessingTime + complexityMultiplier + contextMultiplier, 8000);
       
       setTimeout(() => {
         const mockResponse = {
           id: Date.now().toString(),
           type: 'ai',
-          content: generateAdvancedMockResponse(messageData.message, messageData.context?.userProfile),
+          content: generateEnhancedMockResponse(messageData.message, messageData.context?.userProfile, messageData.context?.marketData),
           timestamp: new Date().toISOString(),
-          confidence: calculateConfidence(messageData.message),
-          context: determineContext(messageData.message),
-          suggestions: generateContextualSuggestions(messageData.message, messageData.context?.userProfile),
-          actions: generateSmartActions(messageData.message, messageData.context?.userProfile),
+          confidence: calculateEnhancedConfidence(messageData.message, messageData.context),
+          context: determineEnhancedContext(messageData.message, messageData.context),
+          suggestions: generateEnhancedSuggestions(messageData.message, messageData.context?.userProfile),
+          actions: generateEnhancedActions(messageData.message, messageData.context?.userProfile),
           processingTime
         };
         
@@ -82,742 +85,466 @@ export function useWebSocket(): UseWebSocketReturn {
     }
   }, []);
 
-  // Advanced AI response generator with context awareness
-  const generateAdvancedMockResponse = (userMessage: string, userProfile: any): string => {
+  // Enhanced AI response generator with real-time data integration
+  const generateEnhancedMockResponse = (userMessage: string, userProfile: any, marketData: any): string => {
     const lowerMessage = userMessage.toLowerCase();
     const userName = userProfile?.username || 'Player';
+    const currentTime = new Date().toLocaleTimeString();
     
-    // Personalized game recommendations
+    // Real-time market analysis responses
+    if (lowerMessage.includes('market') || lowerMessage.includes('trend') || lowerMessage.includes('price') || lowerMessage.includes('real-time')) {
+      return `📊 **Real-Time Market Analysis** (Updated: ${currentTime})
+
+🔥 **Current Market Conditions:**
+• Total Value Locked: $${marketData?.totalValueLocked?.toLocaleString() || '4,850,000'}
+• Active Users: ${marketData?.activeUsers?.toLocaleString() || '5,247'} (↑12% from yesterday)
+• 24h Trading Volume: $2.3M (↑8.5%)
+
+📈 **Live Trends & Opportunities:**
+• **Tournament Pool APY**: 35.8% → 36.2% (↑0.4% in last hour)
+• **NFT Market**: Legendary items up 18% this week
+• **Gaming Rewards**: Strategy games showing 25% higher returns
+• **Staking Demand**: High demand in Gaming Token Pool (98% utilization)
+
+⚡ **Immediate Opportunities:**
+1. **High-Yield Staking**: Tournament Pool offering peak returns
+2. **NFT Arbitrage**: Price gaps detected in weapon categories
+3. **Tournament Entry**: 3 optimal tournaments starting within 2 hours
+4. **Gaming ROI**: Cyber Warriors showing 32% above-average returns
+
+🎯 **Personalized Recommendations:**
+${userProfile ? `Based on your ${userProfile.balances.AGT} AGT balance, I recommend allocating 40% to Tournament Pool staking for optimal returns.` : 'Connect your wallet for personalized market recommendations.'}
+
+💡 **Next 24H Predictions:**
+• Gaming Token Pool APY likely to increase to 26%
+• New tournament announcements expected (high prize pools)
+• NFT market momentum continuing upward
+
+Would you like me to analyze specific opportunities or set up automated alerts for market changes?`;
+    }
+    
+    // Enhanced performance analysis
+    if (lowerMessage.includes('performance') || lowerMessage.includes('analyze') || lowerMessage.includes('stats')) {
+      if (userProfile) {
+        const winRate = userProfile.stats.winRate;
+        const gamesPlayed = userProfile.stats.gamesPlayed;
+        const totalEarnings = userProfile.stats.totalEarnings;
+        const level = userProfile.level;
+        
+        return `🎯 **Advanced Performance Analysis for ${userName}** (Real-time Data)
+
+📊 **Current Performance Metrics:**
+• **Win Rate**: ${winRate}% (${winRate > 75 ? 'Elite tier' : winRate > 65 ? 'Advanced tier' : winRate > 50 ? 'Intermediate tier' : 'Developing tier'})
+• **Games Played**: ${gamesPlayed} (Experience level: ${gamesPlayed > 100 ? 'Veteran' : gamesPlayed > 50 ? 'Experienced' : 'Learning'})
+• **Total Earnings**: $${totalEarnings.toFixed(2)}
+• **Player Level**: ${level}
+• **Rank**: #${userProfile.stats.rank.toLocaleString()} globally
+
+🔍 **AI-Powered Insights:**
+• **Strength Analysis**: ${winRate > 70 ? 'Excellent strategic thinking, focus on high-stakes games' : 'Consistent improvement pattern, recommend skill-building games'}
+• **Earning Efficiency**: $${(totalEarnings / Math.max(gamesPlayed, 1)).toFixed(2)} per game (${(totalEarnings / Math.max(gamesPlayed, 1)) > 50 ? 'Above average' : 'Room for optimization'})
+• **Optimal Game Types**: ${winRate > 65 ? 'Strategy and RPG games for maximum returns' : 'Puzzle and casual games for skill development'}
+
+📈 **Performance Trends (Last 7 days):**
+• Win rate trend: ${Math.random() > 0.5 ? '↗️ +3.2%' : '↘️ -1.1%'} 
+• Earnings trend: ↗️ +${(Math.random() * 50 + 10).toFixed(2)}
+• Game completion rate: ${(85 + Math.random() * 10).toFixed(1)}%
+
+🎯 **Optimization Recommendations:**
+1. **Focus Games**: ${winRate > 70 ? 'Cyber Warriors, Dragon Realm (high-reward strategy games)' : 'Puzzle Master, Speed Legends (skill-building with rewards)'}
+2. **Optimal Schedule**: ${gamesPlayed > 50 ? '3-4 high-stakes games daily' : '5-6 learning games daily'}
+3. **Earning Strategy**: ${totalEarnings > 500 ? 'Diversify into tournaments and staking' : 'Focus on consistent daily gaming'}
+
+💡 **Next Level Targets:**
+• Win rate goal: ${winRate + 5}% (${Math.ceil((winRate + 5 - winRate) * 10)} more wins needed)
+• Earnings goal: $${(totalEarnings * 1.5).toFixed(2)} (${((totalEarnings * 0.5) / 30).toFixed(2)} daily increase needed)
+• Rank improvement: Target top ${Math.floor(userProfile.stats.rank * 0.8).toLocaleString()}
+
+Would you like me to create a personalized improvement plan or analyze specific game performance?`;
+      } else {
+        return `📊 **Performance Analysis Available After Wallet Connection**
+
+To provide detailed performance analysis, I need access to your gaming data. Here's what I can analyze once connected:
+
+🎯 **Available Analytics:**
+• **Win Rate Analysis**: Detailed breakdown by game type and difficulty
+• **Earning Efficiency**: ROI analysis and optimization opportunities  
+• **Skill Progression**: Learning curve and improvement recommendations
+• **Comparative Ranking**: Position against similar players
+• **Trend Analysis**: Performance patterns and predictions
+
+📈 **Sample Insights I Provide:**
+• Game-specific performance metrics
+• Optimal playing schedules based on your patterns
+• Personalized earning strategies
+• Skill development roadmaps
+• Tournament readiness assessments
+
+🔍 **Real-time Monitoring:**
+• Live performance tracking during games
+• Instant feedback and improvement tips
+• Dynamic strategy adjustments
+• Market-based earning optimization
+
+Connect your wallet to unlock comprehensive AI-powered performance analysis!`;
+      }
+    }
+    
+    // Enhanced earning optimization
+    if (lowerMessage.includes('earn') || lowerMessage.includes('money') || lowerMessage.includes('profit') || lowerMessage.includes('optimize')) {
+      if (userProfile) {
+        const agtBalance = userProfile.balances.AGT;
+        const nftBalance = userProfile.balances.NFT;
+        const totalValue = agtBalance * 5 + nftBalance * 87.5;
+        const level = userProfile.level;
+        
+        return `💰 **Advanced Earning Optimization for ${userName}** (Live Analysis)
+
+💼 **Current Portfolio Status:**
+• **Total Value**: $${totalValue.toFixed(2)}
+• **AGT Holdings**: ${agtBalance} tokens ($${(agtBalance * 5).toFixed(2)})
+• **NFT Assets**: ${nftBalance} items ($${(nftBalance * 87.5).toFixed(2)})
+• **Liquid vs Staked**: ${((agtBalance / (agtBalance + nftBalance)) * 100).toFixed(1)}% liquid
+
+🚀 **AI-Optimized Earning Strategy:**
+
+**1. Immediate Actions (Next 24h):**
+• **High-Priority Staking**: Move ${Math.floor(agtBalance * 0.4)} AGT to Tournament Pool (36.2% APY)
+  - Expected monthly return: $${((agtBalance * 0.4 * 0.362) / 12 * 5).toFixed(2)}
+• **Gaming Focus**: Allocate ${Math.floor(agtBalance * 0.3)} AGT for high-ROI games
+  - Target: $${(agtBalance * 0.3 * 0.15).toFixed(2)} daily earnings
+• **NFT Optimization**: ${nftBalance > 10 ? 'Consider selling 20% of lower-utility NFTs' : 'Acquire 2-3 utility NFTs for game enhancement'}
+
+**2. Medium-term Strategy (7-30 days):**
+• **Diversified Staking**: 
+  - Tournament Pool: ${Math.floor(agtBalance * 0.4)} AGT (36.2% APY)
+  - Gaming Pool: ${Math.floor(agtBalance * 0.25)} AGT (25.5% APY)
+  - NFT Pool: ${Math.floor(agtBalance * 0.15)} AGT (18.2% APY)
+• **Tournament Participation**: Budget ${Math.floor(agtBalance * 0.1)} AGT for weekly tournaments
+• **NFT Trading**: Active portfolio management for 15-25% monthly gains
+
+**3. Long-term Growth (30+ days):**
+• **Compound Staking**: Reinvest all staking rewards
+• **Skill Development**: Focus on games with highest skill-to-reward ratios
+• **Market Timing**: Strategic entry/exit based on market cycles
+
+📊 **Projected Returns:**
+• **Daily Passive**: $${((agtBalance * 0.8 * 0.25) / 365 * 5).toFixed(2)} from staking
+• **Daily Active**: $${(agtBalance * 0.2 * 0.15).toFixed(2)} from gaming
+• **Monthly Total**: $${(((agtBalance * 0.8 * 0.25) / 12 * 5) + (agtBalance * 0.2 * 0.15 * 30)).toFixed(2)}
+• **Annual Projection**: $${(totalValue * 1.45).toFixed(2)} (+45% growth)
+
+🎯 **Level ${level} Optimization:**
+${level > 5 ? 'Focus on advanced tournaments and high-stake games' : 'Build foundation with consistent daily gaming and safe staking'}
+
+⚡ **Real-time Opportunities:**
+• Tournament starting in 2h: 15 AGT entry, $8K prize pool
+• NFT arbitrage: 12% profit margin on weapon skins
+• Staking bonus: Extra 0.5% APY for next 48h deposits
+
+Would you like me to execute any of these strategies or provide detailed implementation steps?`;
+      } else {
+        return `💰 **Comprehensive Earning Guide** (Updated ${currentTime})
+
+🎯 **Multiple Revenue Streams Available:**
+
+**1. Active Gaming (Immediate Returns):**
+• **Daily Potential**: $50-500+ based on skill and time investment
+• **Best ROI Games**: 
+  - Cyber Warriors: $25-100/hour (Expert level)
+  - Dragon Realm: $15-60/hour (Intermediate)
+  - Puzzle Master: $10-30/hour (Beginner-friendly)
+• **Skill Multipliers**: Win rate directly impacts earnings (70%+ = premium rewards)
+
+**2. Passive DeFi Staking:**
+• **Tournament Pool**: 36.2% APY (Highest returns, 60-day lock)
+• **Gaming Token Pool**: 25.5% APY (Balanced option, 30-day lock)
+• **NFT Rewards Pool**: 18.2% APY (Flexible, 14-day lock)
+• **Governance Pool**: 12.4% APY (Long-term, 90-day lock)
+
+**3. NFT Trading & Utility:**
+• **Marketplace Trading**: 20-40% monthly returns for active traders
+• **Utility NFTs**: Enhance game performance = higher earnings
+• **Rare Collectibles**: Long-term appreciation (50%+ annually)
+• **Rental Income**: Passive income from NFT lending
+
+**4. Tournament Competition:**
+• **Prize Pools**: $8K-75K per tournament
+• **Entry Fees**: 10-50 AGT depending on tier
+• **ROI Potential**: 200-500% for skilled players
+• **Frequency**: 3-5 tournaments weekly
+
+**5. Referral Program:**
+• **Commission**: 10% of referred player earnings
+• **Bonus XP**: Accelerated level progression
+• **Exclusive Access**: VIP tournaments and features
+
+📊 **Earning Optimization Framework:**
+• **Beginner Strategy**: 60% gaming, 30% safe staking, 10% learning
+• **Intermediate Strategy**: 40% gaming, 40% diversified staking, 20% NFTs
+• **Advanced Strategy**: 30% gaming, 30% staking, 25% NFTs, 15% tournaments
+
+🚀 **Getting Started:**
+1. Connect wallet for personalized analysis
+2. Start with low-risk games and staking
+3. Gradually increase complexity as you learn
+4. Reinvest earnings for compound growth
+
+Connect your wallet for personalized earning projections and real-time optimization!`;
+      }
+    }
+    
+    // Enhanced game recommendations
     if (lowerMessage.includes('game') || lowerMessage.includes('play') || lowerMessage.includes('recommend')) {
       if (userProfile) {
         const winRate = userProfile.stats.winRate;
         const gamesPlayed = userProfile.stats.gamesPlayed;
         const level = userProfile.level;
-        
-        return `Based on your gaming profile analysis, ${userName}, here are my AI-powered recommendations:
-
-🎯 **Personalized Game Recommendations:**
-• **Cyber Warriors** - Perfect for your ${winRate}% win rate, offers strategic depth
-• **Dragon Realm** - RPG elements match your ${gamesPlayed} games experience
-• **Speed Legends** - Quick matches ideal for level ${level} players
-
-📊 **Performance Insights:**
-Your win rate of ${winRate}% suggests you excel at strategic games. I recommend focusing on games with:
-- Complex decision trees (Strategy/RPG)
-- Skill-based progression systems
-- Higher reward multipliers for consistent players
-
-💡 **Earning Optimization:**
-With your current performance, you could potentially earn 15-25% more by focusing on games that reward consistency over quick wins.
-
-Would you like me to analyze specific games or create a personalized gaming schedule?`;
-      } else {
-        return `I'd be happy to recommend games! Our AI-powered game matching system analyzes player preferences and skill levels to provide optimal recommendations.
-
-🎮 **Top Recommended Games:**
-• **Prediction Markets** - Use your analytical skills to predict outcomes (Entry: 10 AGT, Max: 500 AGT)
-• **Fantasy Games** - Build teams and compete strategically (Entry: 15 AGT, Max: 750 AGT)
-• **Cyber Warriors** - Strategic combat with AI opponents (Entry: 25 AGT, Max: 1000 AGT)
-
-🚀 **For Beginners:**
-• **Puzzle Master** - Learn the platform with lower risk (Entry: 10 AGT)
-• **Dragon Realm** - Guided RPG experience with tutorials
-
-Connect your wallet for personalized recommendations based on your gaming style and performance data!`;
-      }
-    }
-    
-    // Advanced earning analysis
-    if (lowerMessage.includes('earn') || lowerMessage.includes('money') || lowerMessage.includes('profit') || lowerMessage.includes('strategy')) {
-      if (userProfile) {
-        const totalEarnings = userProfile.stats.totalEarnings;
         const agtBalance = userProfile.balances.AGT;
-        const level = userProfile.level;
         
-        return `Excellent question about earnings optimization, ${userName}! Let me analyze your financial profile:
+        return `🎮 **AI-Powered Game Recommendations for ${userName}** (Real-time Analysis)
 
-💰 **Current Portfolio Analysis:**
-• Total Earnings: $${totalEarnings.toFixed(2)}
-• AGT Balance: ${agtBalance} tokens
-• Player Level: ${level}
+🎯 **Personalized Game Matching:**
+Based on your ${winRate}% win rate, ${gamesPlayed} games experience, and level ${level} status:
 
-📈 **Optimized Earning Strategy:**
-1. **Gaming Focus (60% allocation):**
-   - High-ROI games based on your skill level
-   - Expected daily: $${(totalEarnings * 0.1).toFixed(2)} - $${(totalEarnings * 0.2).toFixed(2)}
+**🏆 Optimal Games for Your Profile:**
 
-2. **DeFi Staking (30% allocation):**
-   - Stake ${Math.floor(agtBalance * 0.3)} AGT in Tournament Pool (35.8% APY)
-   - Monthly passive income: ~$${((agtBalance * 0.3 * 0.358) / 12).toFixed(2)}
+**1. Cyber Warriors** (Perfect Match - 95% compatibility)
+• **Why Perfect**: Your ${winRate}% win rate indicates strong strategic thinking
+• **Entry Fee**: 25 AGT (✅ You have ${agtBalance})
+• **Expected Earnings**: $${(winRate * 0.8).toFixed(2)}-${(winRate * 1.2).toFixed(2)} per game
+• **Skill Bonus**: +15% rewards for ${winRate > 70 ? 'expert' : 'intermediate'} players
+• **Time Investment**: 15-20 minutes per game
 
-3. **NFT Trading (10% allocation):**
-   - Strategic NFT investments for game enhancement
-   - Potential 20-40% monthly returns
+**2. Dragon Realm** (Excellent Match - 88% compatibility)
+• **Why Excellent**: RPG elements suit your ${gamesPlayed} games experience
+• **Entry Fee**: 20 AGT
+• **Expected Earnings**: $${(winRate * 0.6).toFixed(2)}-${(winRate * 0.9).toFixed(2)} per game
+• **Character Progression**: Unlocks at level ${level}
+• **NFT Integration**: Your existing NFTs provide +10% bonus
 
-🎯 **Personalized Recommendations:**
-Based on your ${totalEarnings > 100 ? 'strong' : 'developing'} performance history, I suggest focusing on ${totalEarnings > 100 ? 'advanced tournaments and high-stake games' : 'skill development and consistent daily gaming'}.
+**3. Speed Legends** (Good Match - 76% compatibility)
+• **Why Good**: Quick games suit active players
+• **Entry Fee**: 15 AGT
+• **Expected Earnings**: $${(winRate * 0.4).toFixed(2)}-${(winRate * 0.7).toFixed(2)} per game
+• **Frequency Bonus**: +5% for daily players
 
-Would you like me to create a detailed weekly earning schedule?`;
+📊 **Performance Predictions:**
+• **Daily Earnings Potential**: $${(winRate * 2.5).toFixed(2)}-${(winRate * 4.2).toFixed(2)}
+• **Weekly Tournament Readiness**: ${winRate > 65 ? 'Ready for intermediate tournaments' : 'Focus on skill building first'}
+• **Optimal Schedule**: ${gamesPlayed > 50 ? '3-4 strategic games daily' : '5-6 learning games daily'}
+
+🚀 **Skill Development Path:**
+1. **Current Focus**: ${winRate > 70 ? 'High-stakes strategy games' : 'Skill-building with consistent rewards'}
+2. **Next Milestone**: Reach ${winRate + 5}% win rate for premium tier access
+3. **Long-term Goal**: Tournament qualification (requires 75%+ win rate)
+
+⚡ **Real-time Opportunities:**
+• **Cyber Warriors**: 2x rewards event active (next 6 hours)
+• **Dragon Realm**: New quest line with rare NFT rewards
+• **Speed Legends**: Weekend tournament qualifiers open
+
+🎯 **Personalized Strategy:**
+With your current performance, I recommend focusing on Cyber Warriors for maximum returns, while using Dragon Realm for steady progression and NFT acquisition.
+
+Would you like me to analyze specific game mechanics or create a detailed playing schedule?`;
       } else {
-        return `Great question about earning strategies! Our platform offers multiple revenue streams optimized by AI algorithms:
-
-💎 **Primary Earning Methods:**
-1. **Gaming Rewards (Active Income):**
-   - Play-to-earn: $50-500+ daily potential
-   - Tournament prizes: $8K-75K prize pools
-   - Achievement bonuses: 10-100 AGT per milestone
-
-2. **DeFi Staking (Passive Income):**
-   - Gaming Token Pool: 25.5% APY
-   - Tournament Pool: 35.8% APY (highest returns)
-   - NFT Rewards Pool: 18.2% APY
-   - Governance Pool: 12.4% APY
-
-3. **NFT Trading:**
-   - Marketplace trading: 23-260 AGT range
-   - Rare item flipping: 20-40% monthly returns
-   - Game asset rentals: Passive income stream
-
-4. **Referral Program:**
-   - 10% of referred player earnings
-   - Bonus XP and level progression
-   - Exclusive tournament access
-
-🚀 **Optimal Strategy:**
-Combine active gaming (60%) with passive staking (30%) and strategic NFT investments (10%) for maximum returns.
-
-Connect your wallet to get personalized earning projections!`;
-      }
-    }
-    
-    // Advanced staking analysis
-    if (lowerMessage.includes('stak') || lowerMessage.includes('defi') || lowerMessage.includes('apy') || lowerMessage.includes('pool')) {
-      if (userProfile) {
-        const agtBalance = userProfile.balances.AGT;
-        const nftBalance = userProfile.balances.NFT;
-        const tourBalance = userProfile.balances.TOUR;
-        const govBalance = userProfile.balances.GOV;
-        
-        return `Perfect timing for staking optimization, ${userName}! Let me analyze your token portfolio:
-
-🏦 **Your Current Holdings:**
-• AGT: ${agtBalance} tokens
-• NFT: ${nftBalance} tokens  
-• TOUR: ${tourBalance} tokens
-• GOV: ${govBalance} tokens
-
-📊 **AI-Optimized Staking Strategy:**
-
-**Recommended Allocation:**
-1. **Tournament Pool (35.8% APY)** - ${Math.floor(agtBalance * 0.4)} AGT
-   - Highest returns, 60-day lock
-   - Monthly earnings: ~$${((agtBalance * 0.4 * 0.358) / 12 * 5).toFixed(2)}
-
-2. **Gaming Token Pool (25.5% APY)** - ${Math.floor(agtBalance * 0.3)} AGT
-   - Balanced risk/reward, 30-day lock
-   - Monthly earnings: ~$${((agtBalance * 0.3 * 0.255) / 12 * 5).toFixed(2)}
-
-3. **NFT Rewards Pool (18.2% APY)** - ${Math.floor(agtBalance * 0.2)} AGT
-   - Lower risk, 14-day lock
-   - Monthly earnings: ~$${((agtBalance * 0.2 * 0.182) / 12 * 5).toFixed(2)}
-
-4. **Reserve for Gaming** - ${Math.floor(agtBalance * 0.1)} AGT
-   - Keep liquid for game entries and opportunities
-
-💡 **Total Projected Monthly Passive Income:** $${(((agtBalance * 0.4 * 0.358) + (agtBalance * 0.3 * 0.255) + (agtBalance * 0.2 * 0.182)) / 12 * 5).toFixed(2)}
-
-⚠️ **Risk Assessment:** Your portfolio shows ${agtBalance > 500 ? 'strong diversification potential' : 'conservative growth opportunity'}. 
-
-Would you like me to execute this staking strategy or analyze alternative allocations?`;
-      } else {
-        return `Excellent question about our DeFi staking ecosystem! Our AI-optimized pools offer industry-leading returns:
-
-🏆 **Premium Staking Pools:**
-
-**Tournament Pool (35.8% APY)** 🥇
-• Minimum: 200 AGT
-• Lock period: 60 days
-• Risk level: Medium-High
-• Best for: Experienced users seeking maximum returns
-
-**Gaming Token Pool (25.5% APY)** 🎮
-• Minimum: 100 AGT  
-• Lock period: 30 days
-• Risk level: Medium
-• Best for: Balanced growth strategy
-
-**NFT Rewards Pool (18.2% APY)** 🎨
-• Minimum: 50 AGT
-• Lock period: 14 days  
-• Risk level: Low-Medium
-• Best for: Beginners and flexible strategies
-
-**Governance Pool (12.4% APY)** 🗳️
-• Minimum: 1000 AGT
-• Lock period: 90 days
-• Risk level: Low
-• Best for: Long-term holders with voting rights
-
-🔒 **Security Features:**
-• Multi-signature smart contracts
-• Insurance fund protection
-• Regular security audits
-• Transparent on-chain operations
-
-💡 **Pro Tip:** Diversify across multiple pools to optimize risk-adjusted returns. Our AI recommends a 40-30-20-10 allocation strategy.
-
-Connect your wallet for personalized staking recommendations!`;
-      }
-    }
-    
-    // Tournament analysis
-    if (lowerMessage.includes('tournament') || lowerMessage.includes('compete') || lowerMessage.includes('prize')) {
-      if (userProfile) {
-        const winRate = userProfile.stats.winRate;
-        const agtBalance = userProfile.balances.AGT;
-        const level = userProfile.level;
-        
-        return `Tournament analysis for ${userName} - Let me find the perfect competitions for your skill level:
-
-🏆 **Recommended Tournaments Based on Your Profile:**
-
-**Cyber Warriors Championship** ($50,000 prize pool)
-• Entry fee: 25 AGT ✅ (You have ${agtBalance})
-• Skill match: ${winRate > 70 ? 'Excellent' : winRate > 60 ? 'Good' : 'Developing'} (${winRate}% win rate)
-• Format: Single elimination
-• ROI potential: ${winRate > 70 ? 'High' : winRate > 60 ? 'Medium' : 'Learning opportunity'}
-
-**Dragon Realm Quest** ($25,000 prize pool)
-• Entry fee: 15 AGT ✅
-• Recommended for level ${level} players
-• Format: Round robin (more forgiving)
-• Expected placement: ${winRate > 65 ? 'Top 25%' : 'Top 50%'}
-
-📊 **Tournament ROI Calculator:**
-With your ${winRate}% win rate:
-• Expected value per tournament: ${(winRate * 0.01 * 100).toFixed(2)} AGT
-• Recommended weekly tournaments: ${winRate > 70 ? '3-4' : '2-3'}
-• Monthly tournament budget: ${Math.floor(agtBalance * 0.2)} AGT
-
-🎯 **Strategy Recommendations:**
-${winRate > 70 ? 'Focus on high-stakes tournaments for maximum returns' : 'Build experience in lower-entry tournaments first'}
-
-Would you like me to register you for optimal tournaments or analyze specific competition strategies?`;
-      } else {
-        return `Tournaments are where champions are made! Our competitive ecosystem offers massive opportunities:
-
-🏆 **Active Tournaments:**
-
-**Cyber Warriors Championship** 
-• Prize Pool: $50,000 USDT
-• Entry: 25 AGT
-• Format: Single Elimination
-• Skill Level: Expert
-• Registration: Open (1,250/2,000 players)
-
-**Dragon Realm Quest**
-• Prize Pool: $25,000 USDT  
-• Entry: 15 AGT
-• Format: Round Robin
-• Skill Level: Intermediate
-• Registration: Open (890/1,500 players)
-
-**Speed Legends Grand Prix**
-• Prize Pool: $15,000 USDT
-• Entry: 10 AGT
-• Format: Battle Royale
-• Skill Level: Beginner
-• Registration: Open (567/1,000 players)
-
-🎯 **Tournament Features:**
-• Real-time leaderboards
-• Live streaming integration
-• Professional esports commentary
-• Anti-cheat AI monitoring
-• Instant prize distribution
-
-💰 **Prize Distribution:**
-• 1st Place: 50% of prize pool
-• 2nd Place: 30% of prize pool  
-• 3rd Place: 20% of prize pool
-• Participation rewards for all players
-
-🚀 **Pro Tips:**
-• Start with lower-entry tournaments to build experience
-• Study opponent strategies in replay mode
-• Join practice sessions before major events
-
-Connect your wallet to register and receive personalized tournament recommendations!`;
-      }
-    }
-    
-    // NFT and marketplace analysis
-    if (lowerMessage.includes('nft') || lowerMessage.includes('marketplace') || lowerMessage.includes('trade') || lowerMessage.includes('buy')) {
-      if (userProfile) {
-        const agtBalance = userProfile.balances.AGT;
-        const nftBalance = userProfile.balances.NFT;
-        
-        return `NFT marketplace analysis for ${userName} - Let me find the best investment opportunities:
-
-🎨 **Personalized NFT Recommendations (Budget: ${agtBalance} AGT):**
-
-**Within Your Budget:**
-• **Cosmic Weapon Skin** - 23 AGT
-  - Game: Cyber Warriors
-  - Rarity: Rare
-  - Utility: +15% damage boost
-  - Investment potential: Strong
-
-• **Neon Racing Car** - 38 AGT  
-  - Game: Speed Legends
-  - Rarity: Rare
-  - Utility: +20% speed boost
-  - Market trend: Rising
-
-**Premium Investments (if budget allows):**
-• **Dragon Rider Character** - 90 AGT
-  - Game: Dragon Realm
-  - Rarity: Epic
-  - Utility: Exclusive quest access
-  - ROI: 25-40% historically
-
-📊 **Your NFT Portfolio Analysis:**
-• Current NFT tokens: ${nftBalance}
-• Estimated portfolio value: $${(nftBalance * 87.5).toFixed(2)}
-• Diversification score: ${nftBalance > 10 ? 'Good' : 'Needs improvement'}
-
-💡 **Investment Strategy:**
-1. **Gaming Utility NFTs (70%)** - Items that enhance gameplay
-2. **Collectible Assets (20%)** - Rare items for long-term appreciation  
-3. **Speculative Plays (10%)** - New releases with high potential
-
-🔥 **Market Insights:**
-• Legendary items up 15% this week
-• Gaming utility NFTs showing strong demand
-• Best buying opportunity: Epic rarity items (undervalued)
-
-Would you like me to execute purchases or provide detailed market analysis for specific items?`;
-      } else {
-        return `Welcome to our premium NFT marketplace! Discover unique gaming assets with real utility:
-
-🎨 **Featured Collections:**
-
-**Gaming Weapons & Equipment:**
-• Legendary Sword of Fire - 125 AGT (Epic damage boost)
-• Crystal Mage Staff - 160 AGT (Magical abilities)
-• Battle Armor Set - 60 AGT (Defense enhancement)
-
-**Character & Avatars:**
-• Dragon Rider Character - 90 AGT (Exclusive quests)
-• Stealth Assassin Outfit - 75 AGT (Stealth abilities)
-
-**Vehicles & Mounts:**
-• Neon Racing Car - 38 AGT (Speed boost)
-• Quantum Bike - 95 AGT (Time manipulation)
-
-**Virtual Real Estate:**
-• Mystic Forest Land - 260 AGT (Resource generation)
-
-📊 **Marketplace Features:**
-• **Utility-First Design:** All NFTs provide in-game benefits
-• **Cross-Game Compatibility:** Use assets across multiple games
-• **Rental System:** Earn passive income from your NFTs
-• **Auction House:** Competitive bidding for rare items
-• **Price History:** Transparent market data
-
-💎 **Investment Highlights:**
-• Average NFT appreciation: 25% monthly
-• Legendary items: 40%+ returns
-• Gaming utility items: Consistent demand
-• Limited editions: Premium collectible value
-
-🔒 **Security & Authenticity:**
-• Blockchain-verified ownership
-• Anti-fraud protection
-• Secure escrow system
-• Instant transfers
-
-Connect your wallet to start building your NFT portfolio with personalized recommendations!`;
-      }
-    }
-    
-    // Portfolio and balance analysis
-    if (lowerMessage.includes('portfolio') || lowerMessage.includes('balance') || lowerMessage.includes('optimize') || lowerMessage.includes('allocat')) {
-      if (userProfile) {
-        const { AGT, NFT, TOUR, GOV } = userProfile.balances;
-        const totalValue = AGT * 5 + NFT * 87.5 + TOUR * 75 + GOV * 6.25;
-        const totalEarnings = userProfile.stats.totalEarnings;
-        
-        return `Comprehensive portfolio analysis for ${userName}:
-
-💼 **Current Portfolio Overview:**
-• **Total Portfolio Value:** $${totalValue.toFixed(2)}
-• **AGT Tokens:** ${AGT} (${((AGT * 5 / totalValue) * 100).toFixed(1)}%)
-• **NFT Assets:** ${NFT} (${((NFT * 87.5 / totalValue) * 100).toFixed(1)}%)
-• **TOUR Tokens:** ${TOUR} (${((TOUR * 75 / totalValue) * 100).toFixed(1)}%)
-• **GOV Tokens:** ${GOV} (${((GOV * 6.25 / totalValue) * 100).toFixed(1)}%)
-
-📊 **Performance Metrics:**
-• **Total Lifetime Earnings:** $${totalEarnings.toFixed(2)}
-• **Portfolio Growth:** ${totalEarnings > 0 ? '+' : ''}${((totalValue - totalEarnings) / Math.max(totalEarnings, 1) * 100).toFixed(1)}%
-• **Risk Score:** ${totalValue > 1000 ? 'Conservative' : totalValue > 500 ? 'Moderate' : 'Aggressive'}
-
-🎯 **AI Optimization Recommendations:**
-
-**Immediate Actions:**
-1. **Rebalance Portfolio:** 
-   - Target: 40% AGT, 25% NFT, 25% TOUR, 10% GOV
-   - Current deviation: ${Math.abs(40 - (AGT * 5 / totalValue) * 100).toFixed(1)}% from optimal
-
-2. **Staking Optimization:**
-   - Stake ${Math.floor(AGT * 0.6)} AGT across multiple pools
-   - Projected monthly income: $${((AGT * 0.6 * 0.25) / 12 * 5).toFixed(2)}
-
-3. **NFT Strategy:**
-   - ${NFT < 10 ? 'Increase NFT holdings for better game performance' : 'Consider selling lower-utility NFTs'}
-
-📈 **Growth Projections (30 days):**
-• **Conservative estimate:** +${(totalValue * 0.05).toFixed(2)} (5%)
-• **Moderate estimate:** +${(totalValue * 0.12).toFixed(2)} (12%)
-• **Aggressive estimate:** +${(totalValue * 0.25).toFixed(2)} (25%)
-
-Would you like me to execute the optimization strategy or provide detailed analysis for specific assets?`;
-      } else {
-        return `Portfolio management is crucial for maximizing returns! Let me explain our comprehensive approach:
-
-💼 **Optimal Portfolio Allocation Strategy:**
-
-**Recommended Distribution:**
-• **AGT Tokens (40%)** - Primary gaming currency
-  - Liquid for game entries and opportunities
-  - Staking potential: 25.5% APY
-  - High liquidity and utility
-
-• **NFT Assets (25%)** - Gaming enhancement items
-  - Utility-focused investments
-  - Average appreciation: 25% monthly
-  - Cross-game compatibility
-
-• **TOUR Tokens (25%)** - Tournament ecosystem
-  - Tournament entry and prizes
-  - Staking rewards: 35.8% APY
-  - Competition-focused utility
-
-• **GOV Tokens (10%)** - Governance participation
-  - Voting rights in DAO decisions
-  - Long-term value appreciation
-  - Platform development influence
-
-📊 **Portfolio Management Tools:**
-• **Real-time Analytics:** Track performance across all assets
-• **Rebalancing Alerts:** AI-powered optimization suggestions
-• **Risk Assessment:** Continuous portfolio health monitoring
-• **Yield Optimization:** Automated staking recommendations
-
-🎯 **Advanced Strategies:**
-• **Dollar-Cost Averaging:** Systematic investment approach
-• **Seasonal Rebalancing:** Quarterly portfolio optimization
-• **Yield Farming:** Multi-pool staking strategies
-• **NFT Rotation:** Strategic buying and selling cycles
-
-💡 **Pro Tips:**
-• Diversify across all token types
-• Keep 10-15% liquid for opportunities
-• Regular rebalancing (monthly)
-• Monitor market trends and adjust accordingly
-
-Connect your wallet for personalized portfolio analysis and optimization recommendations!`;
-      }
-    }
-    
-    // Help and getting started
-    if (lowerMessage.includes('help') || lowerMessage.includes('start') || lowerMessage.includes('begin') || lowerMessage.includes('tutorial')) {
-      if (userProfile) {
-        return `Welcome back, ${userName}! I see you're level ${userProfile.level} with ${userProfile.stats.gamesPlayed} games played. Here's how I can help optimize your experience:
-
-🚀 **Personalized Assistance Menu:**
-
-**Performance Optimization:**
-• Analyze your ${userProfile.stats.winRate}% win rate for improvement opportunities
-• Recommend games matching your skill level
-• Create custom earning schedules
-
-**Financial Management:**
-• Portfolio analysis of your $${(userProfile.balances.AGT * 5 + userProfile.balances.NFT * 87.5).toFixed(2)} holdings
-• Staking optimization strategies
-• ROI calculations for investments
-
-**Strategic Planning:**
-• Tournament recommendations based on your performance
-• NFT investment opportunities
-• Long-term growth strategies
-
-**Real-time Support:**
-• Live market analysis and trends
-• Instant answers to platform questions
-• Personalized tips and insights
-
-🎯 **Quick Actions:**
-• "Analyze my performance" - Detailed gaming statistics
-• "Optimize my portfolio" - AI-powered rebalancing
-• "Find tournaments" - Skill-matched competitions
-• "Show earning opportunities" - Personalized recommendations
-
-💡 **Advanced Features:**
-• Predictive analytics for market trends
-• Automated strategy suggestions
-• Risk assessment and management
-• Performance benchmarking
-
-What specific area would you like to explore? I'm here to provide intelligent, data-driven assistance tailored to your gaming journey!`;
-      } else {
-        return `Welcome to AI Gaming! I'm your intelligent assistant powered by advanced neural networks. Here's everything you need to know:
+        return `🎮 **Comprehensive Game Guide** (Live Data)
+
+🌟 **Featured Games with Real Rewards:**
+
+**🔥 Trending Now:**
+• **Prediction Markets** - Analytical gameplay, $250/day potential
+• **Fantasy Games** - Team strategy, $350/day potential  
+• **Cyber Warriors** - Strategic combat, $500/day potential
+
+**🎯 Game Categories & Earning Potential:**
+
+**Strategy Games (High Skill, High Reward):**
+• **Cyber Warriors**: $25-100/hour, Expert difficulty
+• **Space Odyssey**: $20-80/hour, Advanced strategy
+• **Galactic Empire**: $15-60/hour, Resource management
+
+**RPG Games (Progression-Based):**
+• **Dragon Realm**: $15-60/hour, Character development
+• **Crystal Quest**: $12-45/hour, Adventure quests
+• **Mech Warriors**: $18-65/hour, Combat progression
+
+**Casual Games (Beginner-Friendly):**
+• **Puzzle Master**: $10-30/hour, Logic challenges
+• **Mind Bender**: $8-25/hour, Brain training
+• **Speed Legends**: $12-35/hour, Racing action
+
+**🏆 Tournament Games:**
+• **Battle Arena**: $500-25,000 prize pools
+• **Combat Zone**: $300-15,000 prize pools
+• **Neon Racers**: $200-8,000 prize pools
+
+📊 **Game Selection Framework:**
+• **Skill Level**: Start with puzzle games, progress to strategy
+• **Time Investment**: 10-60 minutes per session
+• **Risk Tolerance**: Entry fees from 10-50 AGT
+• **Earning Goals**: $50-500+ daily potential
 
 🎮 **Getting Started Guide:**
+1. **Beginner Path**: Puzzle Master → Speed Legends → Dragon Realm
+2. **Intermediate Path**: Dragon Realm → Cyber Warriors → Tournaments
+3. **Expert Path**: High-stakes tournaments and competitive play
 
-**Step 1: Connect Your Wallet**
-• Secure wallet integration
-• Instant access to all features
-• Portfolio tracking and management
+🚀 **Pro Tips:**
+• Start with lower entry fee games to learn mechanics
+• Focus on games that match your interests and skills
+• Use NFTs to enhance performance and earnings
+• Join tournaments once you achieve 70%+ win rate
 
-**Step 2: Explore Games**
-• 47+ AI-powered games
-• Multiple categories and skill levels
-• Real rewards and achievements
-
-**Step 3: Start Earning**
-• Play-to-earn mechanics
-• Tournament competitions
-• DeFi staking opportunities
-
-**Step 4: Build Your Portfolio**
-• Diversified token holdings
-• NFT investments
-• Strategic asset allocation
-
-🧠 **AI Assistant Capabilities:**
-• **Intelligent Recommendations:** Personalized game and investment suggestions
-• **Real-time Analysis:** Market trends and performance insights
-• **Strategic Planning:** Long-term growth optimization
-• **Risk Management:** Portfolio protection strategies
-
-💰 **Earning Opportunities:**
-• **Gaming:** $50-500+ daily potential
-• **Staking:** 12.4-35.8% APY returns
-• **Tournaments:** $8K-75K prize pools
-• **NFT Trading:** 20-40% monthly returns
-• **Referrals:** 10% of friend earnings
-
-🔒 **Security & Safety:**
-• Audited smart contracts
-• Multi-signature security
-• Insurance fund protection
-• Transparent operations
-
-🚀 **Pro Features:**
-• Advanced analytics dashboard
-• Automated optimization suggestions
-• Market prediction algorithms
-• Personalized learning paths
-
-Ready to begin your AI Gaming journey? Connect your wallet and I'll provide personalized guidance every step of the way!`;
+Connect your wallet for personalized game recommendations based on your skill level and preferences!`;
       }
     }
     
-    // Security and safety
-    if (lowerMessage.includes('security') || lowerMessage.includes('safe') || lowerMessage.includes('risk') || lowerMessage.includes('protect')) {
-      return `Security is our absolute priority! Here's our comprehensive protection framework:
+    // Default enhanced response with real-time elements
+    return `🤖 **AI Gaming Assistant** - Advanced Neural Network Response (${currentTime})
 
-🛡️ **Platform Security Infrastructure:**
+Thank you for your query! I'm your intelligent gaming assistant with real-time market analysis capabilities.
 
-**Smart Contract Security:**
-• Multiple third-party audits by leading firms
-• Formal verification of critical functions
-• Bug bounty program with $100K+ rewards
-• Real-time monitoring and anomaly detection
+🧠 **My Enhanced Capabilities:**
+• **Real-time Data Processing**: Live market trends and opportunities
+• **Personalized AI Analysis**: Tailored strategies based on your profile
+• **Predictive Modeling**: Future market and performance predictions
+• **Risk Assessment**: Intelligent portfolio and gaming risk management
+• **Automated Optimization**: Continuous strategy refinement
 
-**Financial Protection:**
-• Multi-signature treasury management
-• Insurance fund covering 15% of TVL
-• Emergency pause mechanisms
-• Decentralized governance oversight
+📊 **Current Platform Status:**
+• **Active Users**: ${marketData?.activeUsers?.toLocaleString() || '5,247'} (↑12% today)
+• **Total Value Locked**: $${marketData?.totalValueLocked?.toLocaleString() || '4,850,000'}
+• **24h Volume**: $2.3M trading volume
+• **Live Tournaments**: 12 active competitions
 
-**User Protection:**
-• Non-custodial wallet integration
-• Zero-knowledge privacy features
-• Encrypted data transmission
-• GDPR compliance
+🎮 **Available Services:**
+• **Gaming Strategy**: Personalized game recommendations and optimization
+• **DeFi Analysis**: Staking pool comparisons and yield optimization  
+• **Market Intelligence**: Real-time trends and investment opportunities
+• **Performance Tracking**: Detailed analytics and improvement plans
+• **Risk Management**: Portfolio protection and diversification strategies
 
-🔐 **Personal Security Best Practices:**
+💡 **Popular Queries:**
+• "Analyze my gaming performance and suggest improvements"
+• "Show me the best earning opportunities right now"
+• "Optimize my portfolio allocation for maximum returns"
+• "Find tournaments that match my skill level"
+• "Explain current market trends and predictions"
 
-**Wallet Security:**
-• Use hardware wallets for large amounts
-• Never share private keys or seed phrases
-• Enable 2FA on all accounts
-• Verify all transaction details
+${userProfile ? `🎯 **Quick Insights for ${userName}:**
+Your level ${userProfile.level} status with ${userProfile.stats.winRate}% win rate suggests focusing on ${userProfile.stats.winRate > 70 ? 'advanced tournaments and high-stake games' : 'skill development and consistent daily gaming'}.` : '🔗 **Connect your wallet** for personalized insights and real-time optimization!'}
 
-**Platform Usage:**
-• Start with small amounts to learn
-• Verify smart contract addresses
-• Use official links only
-• Report suspicious activity immediately
-
-**Investment Safety:**
-• Diversify across multiple assets
-• Never invest more than you can afford to lose
-• Understand lock periods and risks
-• Regular portfolio reviews
-
-⚠️ **Risk Management:**
-• **Smart Contract Risk:** Mitigated by audits and insurance
-• **Market Risk:** Diversification and position sizing
-• **Liquidity Risk:** Multiple exit strategies
-• **Regulatory Risk:** Compliance monitoring
-
-📊 **Security Metrics:**
-• 99.9% uptime since launch
-• Zero security incidents
-• $50M+ in assets protected
-• 125K+ users trust our platform
-
-🚨 **Emergency Procedures:**
-• 24/7 security monitoring
-• Instant incident response team
-• Community alert systems
-• Rapid resolution protocols
-
-💡 **Security Tips:**
-• Bookmark official website
-• Join official communication channels
-• Stay updated on security announcements
-• Report phishing attempts
-
-Our security team works around the clock to protect your assets. Any specific security concerns I can address?`;
-    }
-    
-    // Default comprehensive response
-    return `Thank you for reaching out! I'm your AI Gaming assistant, powered by advanced neural networks and machine learning algorithms. I provide intelligent, personalized assistance for all aspects of our platform.
-
-🧠 **My Capabilities:**
-• **Intelligent Analysis:** Real-time data processing and insights
-• **Personalized Recommendations:** Tailored strategies based on your profile
-• **Market Intelligence:** Trend analysis and predictive modeling
-• **Strategic Planning:** Long-term optimization and growth strategies
-
-🎮 **Platform Overview:**
-Our ecosystem combines AI-powered gaming with decentralized finance, creating unique earning opportunities through:
-• **47+ Games:** Strategy, RPG, Action, Puzzle, Racing, and more
-• **DeFi Staking:** 12.4-35.8% APY across multiple pools
-• **NFT Marketplace:** Utility-focused digital assets
-• **Tournaments:** $8K-75K prize pools
-• **Governance:** Community-driven development
-
-💰 **Earning Potential:**
-• **Daily Gaming:** $50-500+ based on skill and time
-• **Passive Staking:** $100-1000+ monthly depending on stake
-• **Tournament Prizes:** $500-25,000+ for top performers
-• **NFT Trading:** 20-40% monthly returns for active traders
-
-🚀 **Getting Started:**
-1. Connect your wallet for personalized experience
-2. Explore games matching your interests
-3. Start with small investments to learn
-4. Gradually build your portfolio and skills
-
-What specific area interests you most? I can provide detailed guidance on games, earning strategies, DeFi features, or any other aspect of our platform!`;
+What specific area would you like me to analyze or optimize for you?`;
   };
 
-  // Calculate response confidence based on message complexity and context
-  const calculateConfidence = (message: string): number => {
-    let confidence = 0.7; // Base confidence
+  // Enhanced confidence calculation
+  const calculateEnhancedConfidence = (message: string, context: any): number => {
+    let confidence = 0.75; // Higher base confidence
     
     // Increase confidence for specific topics
-    const topics = ['game', 'stake', 'earn', 'tournament', 'nft', 'portfolio'];
+    const topics = ['game', 'stake', 'earn', 'tournament', 'nft', 'portfolio', 'market', 'trend'];
     const matchedTopics = topics.filter(topic => message.toLowerCase().includes(topic));
-    confidence += matchedTopics.length * 0.05;
+    confidence += matchedTopics.length * 0.03;
     
-    // Adjust for message length and complexity
-    if (message.length > 50) confidence += 0.1;
-    if (message.includes('?')) confidence += 0.05;
+    // User profile context increases confidence
+    if (context?.userProfile) confidence += 0.1;
     
-    return Math.min(0.95, confidence);
+    // Market data context increases confidence
+    if (context?.marketData) confidence += 0.05;
+    
+    // Message complexity and length
+    if (message.length > 50) confidence += 0.05;
+    if (message.includes('?')) confidence += 0.03;
+    
+    return Math.min(0.98, confidence);
   };
 
-  // Determine response context
-  const determineContext = (message: string): string => {
+  // Enhanced context determination
+  const determineEnhancedContext = (message: string, context: any): string => {
     const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('game') || lowerMessage.includes('play')) return 'gaming';
-    if (lowerMessage.includes('earn') || lowerMessage.includes('money')) return 'earning';
-    if (lowerMessage.includes('stake') || lowerMessage.includes('defi')) return 'defi';
-    if (lowerMessage.includes('tournament')) return 'tournament';
-    if (lowerMessage.includes('nft') || lowerMessage.includes('marketplace')) return 'marketplace';
-    if (lowerMessage.includes('portfolio') || lowerMessage.includes('balance')) return 'portfolio';
-    if (lowerMessage.includes('help') || lowerMessage.includes('start')) return 'help';
+    if (lowerMessage.includes('market') || lowerMessage.includes('trend') || lowerMessage.includes('price')) return 'market-analysis';
+    if (lowerMessage.includes('performance') || lowerMessage.includes('analyze') || lowerMessage.includes('stats')) return 'performance-analysis';
+    if (lowerMessage.includes('game') || lowerMessage.includes('play')) return 'gaming-strategy';
+    if (lowerMessage.includes('earn') || lowerMessage.includes('money') || lowerMessage.includes('optimize')) return 'earning-optimization';
+    if (lowerMessage.includes('stake') || lowerMessage.includes('defi')) return 'defi-strategy';
+    if (lowerMessage.includes('tournament')) return 'tournament-strategy';
+    if (lowerMessage.includes('nft') || lowerMessage.includes('marketplace')) return 'nft-strategy';
+    if (lowerMessage.includes('portfolio') || lowerMessage.includes('balance')) return 'portfolio-management';
     
-    return 'general';
+    return 'general-assistance';
   };
 
-  // Generate contextual suggestions
-  const generateContextualSuggestions = (message: string, userProfile: any): string[] => {
+  // Enhanced suggestions generation
+  const generateEnhancedSuggestions = (message: string, userProfile: any): string[] => {
     const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('market') || lowerMessage.includes('trend')) {
+      return [
+        'Set up automated market alerts for opportunities',
+        'Analyze specific token or NFT price trends',
+        'Show me predictive market models for next week'
+      ];
+    }
+    
+    if (lowerMessage.includes('performance') || lowerMessage.includes('analyze')) {
+      return userProfile ? [
+        'Create a detailed improvement plan for my weak areas',
+        'Compare my performance with similar players',
+        'Show me advanced optimization strategies'
+      ] : [
+        'Explain how performance tracking works',
+        'Show me sample performance analytics',
+        'What metrics should I focus on?'
+      ];
+    }
     
     if (lowerMessage.includes('game')) {
       return userProfile ? [
-        'Analyze my gaming performance trends',
-        'Find games matching my skill level',
-        'Calculate optimal gaming schedule'
+        'Create a personalized gaming schedule for maximum earnings',
+        'Find games that complement my current skill set',
+        'Show me advanced gaming strategies and techniques'
       ] : [
-        'Show me beginner-friendly games',
-        'What are the highest earning games?',
-        'Explain game mechanics and rewards'
+        'Explain game mechanics and reward systems',
+        'Show me the learning path for each game type',
+        'What games should absolute beginners start with?'
       ];
     }
     
-    if (lowerMessage.includes('earn')) {
+    if (lowerMessage.includes('earn') || lowerMessage.includes('optimize')) {
       return userProfile ? [
-        'Optimize my current earning strategy',
-        'Calculate potential monthly income',
-        'Show advanced earning techniques'
+        'Calculate my optimal risk-reward balance',
+        'Show me compound earning strategies',
+        'Create an automated earning plan'
       ] : [
-        'Explain all earning methods',
-        'Calculate earning potential',
-        'Show me the best strategies'
-      ];
-    }
-    
-    if (lowerMessage.includes('stake')) {
-      return userProfile ? [
-        'Optimize my staking allocation',
-        'Calculate staking rewards',
-        'Compare all staking pools'
-      ] : [
-        'Explain staking mechanics',
-        'Which pool offers best returns?',
-        'What are the risks involved?'
+        'Compare all earning methods side by side',
+        'Show me realistic earning timelines',
+        'What are the risks and how to minimize them?'
       ];
     }
     
     return userProfile ? [
-      'Show me personalized opportunities',
-      'Analyze my overall performance',
-      'Recommend next actions'
+      'Provide real-time opportunities matching my profile',
+      'Show me advanced strategies I haven\'t tried',
+      'Create a comprehensive optimization plan'
     ] : [
-      'Help me get started',
-      'Explain platform features',
-      'Show earning opportunities'
+      'Give me a complete platform walkthrough',
+      'Show me the fastest way to start earning',
+      'Explain the most important concepts for beginners'
     ];
   };
 
-  // Generate smart actions
-  const generateSmartActions = (message: string, userProfile: any): any[] => {
+  // Enhanced actions generation
+  const generateEnhancedActions = (message: string, userProfile: any): any[] => {
     const actions = [];
     const lowerMessage = message.toLowerCase();
     
     if (lowerMessage.includes('game')) {
       actions.push({
         id: 'browse_games',
-        label: 'Browse Games',
+        label: 'Browse All Games',
         action: 'navigate',
         data: { section: 'games' }
       });
@@ -826,7 +553,7 @@ What specific area interests you most? I can provide detailed guidance on games,
     if (lowerMessage.includes('stake') || lowerMessage.includes('defi')) {
       actions.push({
         id: 'view_staking',
-        label: 'View Staking Pools',
+        label: 'Explore Staking Pools',
         action: 'navigate',
         data: { section: 'staking' }
       });
@@ -835,7 +562,7 @@ What specific area interests you most? I can provide detailed guidance on games,
     if (lowerMessage.includes('tournament')) {
       actions.push({
         id: 'view_tournaments',
-        label: 'View Tournaments',
+        label: 'View Live Tournaments',
         action: 'navigate',
         data: { section: 'tournaments' }
       });
@@ -844,9 +571,18 @@ What specific area interests you most? I can provide detailed guidance on games,
     if (lowerMessage.includes('nft') || lowerMessage.includes('marketplace')) {
       actions.push({
         id: 'browse_nfts',
-        label: 'Browse NFTs',
+        label: 'Explore NFT Marketplace',
         action: 'navigate',
         data: { section: 'marketplace' }
+      });
+    }
+    
+    if (lowerMessage.includes('performance') || lowerMessage.includes('analytics')) {
+      actions.push({
+        id: 'view_analytics',
+        label: 'View Analytics Dashboard',
+        action: 'navigate',
+        data: { section: 'analytics' }
       });
     }
     
