@@ -4,29 +4,29 @@ import { Users, Target, Lightbulb, Award, Globe, Zap, Shield, Rocket } from 'luc
 export default function About() {
   const teamMembers = [
     {
-      name: "Alex Chen",
+      name: "Ujjawal",
       role: "CEO & Co-Founder",
       image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
       bio: "Former Google AI researcher with 10+ years in gaming and blockchain",
       linkedin: "#"
     },
     {
-      name: "Sarah Johnson",
+      name: "Dhairya Patel",
       role: "CTO & Co-Founder",
       image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
       bio: "Ex-Ethereum core developer, expert in DeFi protocols and smart contracts",
       linkedin: "#"
     },
     {
-      name: "Marcus Rodriguez",
-      role: "Head of Game Development",
+      name: "Sarvesh Tiwari",
+      role: "Blokchain Development Director",
       image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
       bio: "Former Ubisoft lead designer with 15+ years in AAA game development",
       linkedin: "#"
     },
     {
-      name: "Dr. Emily Watson",
-      role: "Head of AI Research",
+      name: "Awani Pandey",
+      role: "Business Development Director",
       image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
       bio: "PhD in Machine Learning from MIT, specialized in gaming AI and NLP",
       linkedin: "#"
