@@ -172,8 +172,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                 </button>
 
                 
-                )}
-              </div>
+              
             )}
 
             {/* Wallet Connection */}
