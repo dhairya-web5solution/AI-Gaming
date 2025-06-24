@@ -13,7 +13,7 @@ export default function About() {
     {
       name: "Dhairya Patel",
       role: "CTO & Co-Founder",
-      image: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
+      image: "../img/dhairya.png",
       bio: "Ex-Ethereum core developer, expert in DeFi protocols and smart contracts",
       linkedin: "#"
     },
