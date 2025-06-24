@@ -141,18 +141,6 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
             </Link>
           </nav>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex items-center bg-gray-800 rounded-lg px-3 py-2">
-            <Search className="w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search games..."
-              className="bg-transparent text-white ml-2 focus:outline-none text-sm w-32"
-            />
-          </form>
-
           {/* Right Side */}
           <div className="flex items-center space-x-4">
             {/* Language Selector */}
