@@ -156,20 +156,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
               </select>
             </div>
 
-            {/* Notifications */}
-            {isWalletConnected && (
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  <Bell className="w-5 h-5" />
-                  {notifications > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {notifications}
-                    </span>
-                  )}
-                </button>
+            
 
                 
               
