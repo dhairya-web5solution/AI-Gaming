@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Heart, Eye, TrendingUp, Filter, Star } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
 
 interface NFTItem {
   id: string;
@@ -21,6 +22,7 @@ export default function Marketplace() {
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [displayedItems, setDisplayedItems] = useState(6);
   const [isLoading, setIsLoading] = useState(false);
+  const { user, updateBalance } = useUser();
 
   const filters = [
     { id: 'all', name: 'All Items' },
@@ -36,8 +38,8 @@ export default function Marketplace() {
       id: '1',
       name: 'Legendary Sword of Fire',
       image: 'https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 2.5,
-      currency: 'ETH',
+      price: 125,
+      currency: 'AGT',
       rarity: 'legendary',
       likes: 234,
       views: 1250,
@@ -49,8 +51,8 @@ export default function Marketplace() {
       id: '2',
       name: 'Dragon Rider Character',
       image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 1.8,
-      currency: 'ETH',
+      price: 90,
+      currency: 'AGT',
       rarity: 'epic',
       likes: 189,
       views: 890,
@@ -62,8 +64,8 @@ export default function Marketplace() {
       id: '3',
       name: 'Neon Racing Car',
       image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 0.75,
-      currency: 'ETH',
+      price: 38,
+      currency: 'AGT',
       rarity: 'rare',
       likes: 156,
       views: 670,
@@ -75,8 +77,8 @@ export default function Marketplace() {
       id: '4',
       name: 'Mystic Forest Land',
       image: 'https://images.pexels.com/photos/586063/pexels-photo-586063.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 5.2,
-      currency: 'ETH',
+      price: 260,
+      currency: 'AGT',
       rarity: 'legendary',
       likes: 312,
       views: 1890,
@@ -88,8 +90,8 @@ export default function Marketplace() {
       id: '5',
       name: 'Battle Armor Set',
       image: 'https://images.pexels.com/photos/275033/pexels-photo-275033.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 1.2,
-      currency: 'ETH',
+      price: 60,
+      currency: 'AGT',
       rarity: 'epic',
       likes: 98,
       views: 445,
@@ -101,8 +103,8 @@ export default function Marketplace() {
       id: '6',
       name: 'Cosmic Weapon Skin',
       image: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 0.45,
-      currency: 'ETH',
+      price: 23,
+      currency: 'AGT',
       rarity: 'rare',
       likes: 67,
       views: 234,
@@ -110,13 +112,12 @@ export default function Marketplace() {
       seller: '0x2222...8888',
       game: 'Cyber Warriors'
     },
-    // Additional items for load more functionality
     {
       id: '7',
       name: 'Crystal Mage Staff',
       image: 'https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 3.2,
-      currency: 'ETH',
+      price: 160,
+      currency: 'AGT',
       rarity: 'legendary',
       likes: 445,
       views: 2100,
@@ -128,66 +129,14 @@ export default function Marketplace() {
       id: '8',
       name: 'Stealth Assassin Outfit',
       image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 1.5,
-      currency: 'ETH',
+      price: 75,
+      currency: 'AGT',
       rarity: 'epic',
       likes: 278,
       views: 1340,
       isLiked: false,
       seller: '0x6666...4444',
       game: 'Mech Warriors'
-    },
-    {
-      id: '9',
-      name: 'Quantum Bike',
-      image: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 0.95,
-      currency: 'ETH',
-      rarity: 'rare',
-      likes: 189,
-      views: 890,
-      isLiked: false,
-      seller: '0x8888...6666',
-      game: 'Neon Racers'
-    },
-    {
-      id: '10',
-      name: 'Ancient Relic',
-      image: 'https://images.pexels.com/photos/586063/pexels-photo-586063.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 4.8,
-      currency: 'ETH',
-      rarity: 'legendary',
-      likes: 567,
-      views: 2890,
-      isLiked: false,
-      seller: '0x9999...7777',
-      game: 'Galactic Empire'
-    },
-    {
-      id: '11',
-      name: 'Elite Sniper Rifle',
-      image: 'https://images.pexels.com/photos/275033/pexels-photo-275033.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 2.1,
-      currency: 'ETH',
-      rarity: 'epic',
-      likes: 334,
-      views: 1560,
-      isLiked: false,
-      seller: '0x1111...8888',
-      game: 'Combat Zone'
-    },
-    {
-      id: '12',
-      name: 'Puzzle Master Badge',
-      image: 'https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
-      price: 0.35,
-      currency: 'ETH',
-      rarity: 'rare',
-      likes: 123,
-      views: 567,
-      isLiked: false,
-      seller: '0x2222...9999',
-      game: 'Mind Bender'
     }
   ];
 
@@ -213,18 +162,29 @@ export default function Marketplace() {
   };
 
   const handleBuy = (item: NFTItem) => {
-    console.log(`Purchasing ${item.name} for ${item.price} ${item.currency}`);
-    // In production, this would open the purchase modal and process the transaction
+    if (!user) {
+      alert('Please connect your wallet to purchase NFTs.');
+      return;
+    }
+
+    if (user.balances.AGT < item.price) {
+      alert(`Insufficient AGT tokens. You need ${item.price} AGT to purchase this item.`);
+      return;
+    }
+
+    // Deduct AGT tokens and add NFT token
+    updateBalance('AGT', -item.price);
+    updateBalance('NFT', 1);
+
+    alert(`Successfully purchased ${item.name} for ${item.price} AGT! You received 1 NFT token.`);
   };
 
   const handleQuickView = (item: NFTItem) => {
-    console.log(`Opening quick view for ${item.name}`);
-    // In production, this would show detailed information in a modal
+    alert(`Quick View: ${item.name}\n\nGame: ${item.game}\nRarity: ${item.rarity}\nPrice: ${item.price} AGT\nSeller: ${item.seller}\n\nThis would open a detailed view modal in production.`);
   };
 
   const handleLoadMore = async () => {
     setIsLoading(true);
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     setDisplayedItems(prev => prev + 6);
     setIsLoading(false);
@@ -232,8 +192,7 @@ export default function Marketplace() {
 
   const filteredItems = allNftItems.filter(item => {
     if (selectedFilter === 'all') return true;
-    // Simple category matching - in production, items would have category fields
-    return true;
+    return true; // In production, items would have category fields
   });
 
   const sortedItems = [...filteredItems].sort((a, b) => {
@@ -269,6 +228,31 @@ export default function Marketplace() {
             Trade unique gaming assets and collectibles on our decentralized marketplace
           </p>
         </div>
+
+        {/* User Balance Display */}
+        {user && (
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 mb-8">
+            <h3 className="text-lg font-bold text-white mb-4">Your Balance</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-400">{user.balances.AGT}</div>
+                <div className="text-gray-400 text-sm">AGT Tokens</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400">{user.balances.NFT}</div>
+                <div className="text-gray-400 text-sm">NFT Items</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">{user.balances.TOUR}</div>
+                <div className="text-gray-400 text-sm">TOUR Tokens</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-400">{user.balances.GOV}</div>
+                <div className="text-gray-400 text-sm">GOV Tokens</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Filters and Controls */}
         <div className="flex flex-col lg:flex-row justify-between items-center mb-8 space-y-4 lg:space-y-0">
@@ -379,15 +363,16 @@ export default function Marketplace() {
                       {item.price} {item.currency}
                     </div>
                     <div className="text-sm text-gray-400">
-                      ≈ ${(item.price * 2000).toLocaleString()}
+                      ≈ ${(item.price * 5).toLocaleString()}
                     </div>
                   </div>
                   <button
                     onClick={() => handleBuy(item)}
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2"
+                    disabled={!user || user.balances.AGT < item.price}
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
                     <ShoppingCart className="w-4 h-4" />
-                    <span>Buy</span>
+                    <span>{!user ? 'Connect Wallet' : 'Buy'}</span>
                   </button>
                 </div>
               </div>
@@ -405,6 +390,19 @@ export default function Marketplace() {
             >
               {isLoading ? 'Loading...' : `Load More Items (${sortedItems.length - displayedItems} remaining)`}
             </button>
+          </div>
+        )}
+
+        {/* Connect Wallet Prompt */}
+        {!user && (
+          <div className="text-center mt-12">
+            <div className="bg-gray-900 rounded-xl p-8 border border-gray-700">
+              <ShoppingCart className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">Connect Wallet to Trade</h3>
+              <p className="text-gray-400">
+                Connect your wallet to buy, sell, and trade NFTs on our marketplace
+              </p>
+            </div>
           </div>
         )}
       </div>

@@ -31,6 +31,21 @@ export default function OnboardingFlow({ isOpen, onClose }: OnboardingFlowProps)
     }
   };
 
+  const handleStartPlaying = () => {
+    // Complete onboarding
+    completeOnboarding();
+    updateBalance('AGT', 100); // Welcome bonus
+    onClose();
+    
+    // Scroll to games section
+    setTimeout(() => {
+      const gamesSection = document.getElementById('games');
+      if (gamesSection) {
+        gamesSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 500);
+  };
+
   const steps = [
     {
       title: "Welcome to AI Gaming!",
@@ -198,7 +213,7 @@ export default function OnboardingFlow({ isOpen, onClose }: OnboardingFlowProps)
           </div>
 
           <button
-            onClick={handleNext}
+            onClick={currentStep === totalSteps ? handleStartPlaying : handleNext}
             className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
           >
             <span>{currentStep === totalSteps ? 'Start Playing!' : 'Next'}</span>

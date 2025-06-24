@@ -36,18 +36,18 @@ function AppContent() {
     }
   }, [user]);
 
-  // Auto-show AI agent for new users after onboarding
+  // Auto-show AI agent for onboarded users
   useEffect(() => {
-    if (user && user.isOnboarded && !showAIAgent) {
+    if (user && user.isOnboarded) {
       const hasSeenAI = localStorage.getItem('hasSeenAI');
       if (!hasSeenAI) {
         setTimeout(() => {
           setShowAIAgent(true);
           localStorage.setItem('hasSeenAI', 'true');
-        }, 2000);
+        }, 3000); // Show after 3 seconds
       }
     }
-  }, [user, showAIAgent]);
+  }, [user]);
 
   const handleConnectWallet = async () => {
     await connectWallet();
@@ -135,7 +135,7 @@ function AppContent() {
           <AIAgent onClose={() => setShowAIAgent(false)} />
         )}
         
-        {/* Global AI Assistant Toggle */}
+        {/* Global AI Assistant Toggle - Only show for onboarded users */}
         {!showAIAgent && user?.isOnboarded && (
           <button
             onClick={() => setShowAIAgent(true)}
