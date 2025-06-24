@@ -171,34 +171,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                   )}
                 </button>
 
-                {/* Notifications Dropdown */}
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
-                    <div className="p-4 border-b border-gray-700">
-                      <h3 className="text-white font-semibold">Notifications</h3>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      {mockNotifications.map(notification => (
-                        <button
-                          key={notification.id}
-                          onClick={() => handleNotificationClick(notification.id)}
-                          className="w-full p-4 text-left hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0"
-                        >
-                          <div className="text-white font-medium text-sm">{notification.title}</div>
-                          <div className="text-gray-400 text-xs mt-1">{notification.message}</div>
-                          <div className="text-gray-500 text-xs mt-1">{notification.time}</div>
-                        </button>
-                      ))}
-                    </div>
-                    <div className="p-4 border-t border-gray-700">
-                      <button 
-                        onClick={() => setShowNotifications(false)}
-                        className="text-purple-400 text-sm hover:text-purple-300"
-                      >
-                        View All Notifications
-                      </button>
-                    </div>
-                  </div>
+                
                 )}
               </div>
             )}
