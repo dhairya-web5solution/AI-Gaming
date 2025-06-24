@@ -36,18 +36,16 @@ function AppContent() {
     }
   }, [user]);
 
-  // Auto-show AI agent for onboarded users
+  // Auto-show AI agent after onboarding completion
   useEffect(() => {
     if (user && user.isOnboarded) {
-      const hasSeenAI = localStorage.getItem('hasSeenAI');
-      if (!hasSeenAI) {
-        setTimeout(() => {
-          setShowAIAgent(true);
-          localStorage.setItem('hasSeenAI', 'true');
-        }, 3000); // Show after 3 seconds
-      }
+      const timer = setTimeout(() => {
+        setShowAIAgent(true);
+      }, 2000); // Show 2 seconds after onboarding
+
+      return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user?.isOnboarded]);
 
   const handleConnectWallet = async () => {
     await connectWallet();
@@ -71,6 +69,11 @@ function AppContent() {
     console.log(`Registered for tournament: ${tournamentId}`);
     setShowTournamentModal(false);
     setSelectedTournament(null);
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    // AI Agent will auto-show due to the useEffect above
   };
 
   const MainPage = () => (
@@ -108,7 +111,7 @@ function AppContent() {
         {/* Onboarding Flow */}
         <OnboardingFlow 
           isOpen={showOnboarding} 
-          onClose={() => setShowOnboarding(false)} 
+          onClose={handleOnboardingComplete}
         />
         
         {/* Game Detail Modal */}
@@ -130,13 +133,13 @@ function AppContent() {
           onRegister={handleTournamentRegistration}
         />
         
-        {/* AI Agent */}
+        {/* AI Agent - Show for all users, not just onboarded */}
         {showAIAgent && (
           <AIAgent onClose={() => setShowAIAgent(false)} />
         )}
         
-        {/* Global AI Assistant Toggle - Only show for onboarded users */}
-        {!showAIAgent && user?.isOnboarded && (
+        {/* Global AI Assistant Toggle - Show for all users */}
+        {!showAIAgent && (
           <button
             onClick={() => setShowAIAgent(true)}
             className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-500 to-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 animate-pulse"

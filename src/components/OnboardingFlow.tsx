@@ -17,11 +17,6 @@ export default function OnboardingFlow({ isOpen, onClose }: OnboardingFlowProps)
   const handleNext = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
-    } else {
-      // Complete onboarding and give welcome bonus
-      completeOnboarding();
-      updateBalance('AGT', 100); // Welcome bonus
-      onClose();
     }
   };
 
@@ -44,6 +39,13 @@ export default function OnboardingFlow({ isOpen, onClose }: OnboardingFlowProps)
         gamesSection.scrollIntoView({ behavior: 'smooth' });
       }
     }, 500);
+  };
+
+  const handleComplete = () => {
+    // Complete onboarding and give welcome bonus
+    completeOnboarding();
+    updateBalance('AGT', 100); // Welcome bonus
+    onClose();
   };
 
   const steps = [
@@ -212,13 +214,31 @@ export default function OnboardingFlow({ isOpen, onClose }: OnboardingFlowProps)
             ))}
           </div>
 
-          <button
-            onClick={currentStep === totalSteps ? handleStartPlaying : handleNext}
-            className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
-          >
-            <span>{currentStep === totalSteps ? 'Start Playing!' : 'Next'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {currentStep === totalSteps ? (
+            <div className="flex space-x-2">
+              <button
+                onClick={handleComplete}
+                className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-200"
+              >
+                <span>Complete</span>
+              </button>
+              <button
+                onClick={handleStartPlaying}
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+              >
+                <span>Start Playing!</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleNext}
+              className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+            >
+              <span>Next</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>
