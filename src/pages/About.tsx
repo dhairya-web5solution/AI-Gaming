@@ -6,14 +6,14 @@ export default function About() {
     {
       name: "Ujjawal",
       role: "CEO & Co-Founder",
-      image: "../ujjawal.jpeg",
+      image: "/img/ujjawal.jpeg",
       bio: "Former Google AI researcher with 10+ years in gaming and blockchain",
       linkedin: "#"
     },
     {
       name: "Dhairya Patel",
       role: "CTO & Co-Founder",
-      image: "../dhairya.png",
+      image: "/img/dhairya.png",
       bio: "Ex-Ethereum core developer, expert in DeFi protocols and smart contracts",
       linkedin: "#"
     },
