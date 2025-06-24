@@ -22,8 +22,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
   const languages = [
     { code: 'EN', name: 'English' },
     { code: 'ES', name: 'Español' },
-    { code: 'ZH', name: '中文' },
-    { code: 'FR', name: 'Français' },
+   { code: 'FR', name: 'Français' },
     { code: 'DE', name: 'Deutsch' }
   ];
 
