@@ -77,7 +77,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
 
   return (
     <header className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style="
+      <div className="mx-auto px-4 sm:px-6 lg:px-8" style="
     max-width: 100rem;">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
