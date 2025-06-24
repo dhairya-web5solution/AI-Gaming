@@ -221,7 +221,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                 className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2"
               >
                 <Wallet className="w-4 h-4" />
-                <span>Connect Wallet</span>
+                <span>Wallet</span>
               </button>
             )}
 
