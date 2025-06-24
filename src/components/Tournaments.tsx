@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Users, Clock, DollarSign, Calendar, Star, Play } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
 
 interface Tournament {
   id: string;
@@ -18,11 +19,16 @@ interface Tournament {
   format: 'single-elimination' | 'round-robin' | 'battle-royale';
 }
 
-export default function Tournaments() {
+interface TournamentsProps {
+  onTournamentRegister?: (tournament: Tournament) => void;
+}
+
+export default function Tournaments({ onTournamentRegister }: TournamentsProps) {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [registeredTournaments, setRegisteredTournaments] = useState<Set<string>>(new Set());
   const [displayedTournaments, setDisplayedTournaments] = useState(6);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useUser();
 
   const allTournaments: Tournament[] = [
     {
@@ -120,71 +126,6 @@ export default function Tournaments() {
       status: 'upcoming',
       difficulty: 'intermediate',
       format: 'battle-royale'
-    },
-    // Additional tournaments for load more functionality
-    {
-      id: '7',
-      name: 'Mech Warriors League',
-      game: 'Mech Warriors',
-      image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      prizePool: 35000,
-      currency: 'USDT',
-      participants: 945,
-      maxParticipants: 1600,
-      startDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000),
-      endDate: new Date(Date.now() + 19 * 24 * 60 * 60 * 1000),
-      entryFee: 30,
-      status: 'upcoming',
-      difficulty: 'expert',
-      format: 'single-elimination'
-    },
-    {
-      id: '8',
-      name: 'Crystal Quest Tournament',
-      game: 'Crystal Quest',
-      image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      prizePool: 18000,
-      currency: 'USDT',
-      participants: 678,
-      maxParticipants: 1200,
-      startDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
-      endDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000),
-      entryFee: 12,
-      status: 'upcoming',
-      difficulty: 'intermediate',
-      format: 'round-robin'
-    },
-    {
-      id: '9',
-      name: 'Neon Racers Cup',
-      game: 'Neon Racers',
-      image: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      prizePool: 22000,
-      currency: 'USDT',
-      participants: 789,
-      maxParticipants: 1400,
-      startDate: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
-      endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-      entryFee: 18,
-      status: 'upcoming',
-      difficulty: 'beginner',
-      format: 'battle-royale'
-    },
-    {
-      id: '10',
-      name: 'Mind Bender Challenge',
-      game: 'Mind Bender',
-      image: 'https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      prizePool: 12000,
-      currency: 'USDT',
-      participants: 456,
-      maxParticipants: 800,
-      startDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-      endDate: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000),
-      entryFee: 8,
-      status: 'upcoming',
-      difficulty: 'intermediate',
-      format: 'round-robin'
     }
   ];
 
@@ -236,9 +177,11 @@ export default function Tournaments() {
     return `${minutes}m`;
   };
 
-  const handleRegister = (tournamentId: string) => {
-    const tournament = allTournaments.find(t => t.id === tournamentId);
-    if (!tournament) return;
+  const handleRegister = (tournament: Tournament) => {
+    if (!user) {
+      alert('Please connect your wallet to register for tournaments.');
+      return;
+    }
 
     if (tournament.status === 'ended') {
       console.log('This tournament has already ended.');
@@ -250,8 +193,12 @@ export default function Tournaments() {
       return;
     }
 
-    setRegisteredTournaments(prev => new Set([...prev, tournamentId]));
-    console.log(`Successfully registered for ${tournament.name}! Entry fee: ${tournament.entryFee} ${tournament.currency}`);
+    if (onTournamentRegister) {
+      onTournamentRegister(tournament);
+    } else {
+      setRegisteredTournaments(prev => new Set([...prev, tournament.id]));
+      console.log(`Successfully registered for ${tournament.name}! Entry fee: ${tournament.entryFee} AGT`);
+    }
   };
 
   const handleJoinLive = (tournamentId: string) => {
@@ -260,7 +207,6 @@ export default function Tournaments() {
 
   const handleLoadMore = async () => {
     setIsLoading(true);
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     setDisplayedTournaments(prev => prev + 6);
     setIsLoading(false);
@@ -268,7 +214,7 @@ export default function Tournaments() {
 
   const handleFilterChange = (filterId: string) => {
     setSelectedFilter(filterId);
-    setDisplayedTournaments(6); // Reset to initial count when changing filter
+    setDisplayedTournaments(6);
   };
 
   return (
@@ -367,7 +313,7 @@ export default function Tournaments() {
                       <DollarSign className="w-4 h-4 text-green-400 mr-1" />
                       <span className="text-white font-semibold">{tournament.entryFee}</span>
                     </div>
-                    <div className="text-gray-400 text-xs">Entry Fee</div>
+                    <div className="text-gray-400 text-xs">Entry Fee (AGT)</div>
                   </div>
                 </div>
 
@@ -405,7 +351,7 @@ export default function Tournaments() {
                 <div className="space-y-2">
                   {tournament.status === 'upcoming' && (
                     <button
-                      onClick={() => handleRegister(tournament.id)}
+                      onClick={() => handleRegister(tournament)}
                       disabled={registeredTournaments.has(tournament.id) || tournament.participants >= tournament.maxParticipants}
                       className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 ${
                         registeredTournaments.has(tournament.id)

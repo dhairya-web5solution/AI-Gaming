@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Wallet, User, Bell, Search, Globe, Gamepad2 } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
 
 interface HeaderProps {
   onConnectWallet: () => void;
   isWalletConnected: boolean;
   walletAddress?: string;
+  isLoading?: boolean;
 }
 
-export default function Header({ onConnectWallet, isWalletConnected, walletAddress }: HeaderProps) {
+export default function Header({ onConnectWallet, isWalletConnected, walletAddress, isLoading }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState(3);
   const [selectedLanguage, setSelectedLanguage] = useState('EN');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
+  const { user } = useUser();
 
   const languages = [
     { code: 'EN', name: 'English' },
@@ -46,7 +49,6 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
       if (gamesSection) {
         gamesSection.scrollIntoView({ behavior: 'smooth' });
       }
-      // In production, this would filter games by search query
       console.log('Searching for:', searchQuery);
     }
   };
@@ -54,19 +56,16 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
   const handleLanguageChange = (langCode: string) => {
     setSelectedLanguage(langCode);
     console.log(`Language changed to ${languages.find(l => l.code === langCode)?.name}`);
-    // In production, this would trigger i18n language change
   };
 
   const handleNotificationClick = (notificationId: number) => {
     console.log(`Opening notification ${notificationId}`);
     setShowNotifications(false);
     setNotifications(prev => Math.max(0, prev - 1));
-    // In production, this would navigate to the relevant page
   };
 
   const handleWalletMenu = () => {
     console.log('Opening wallet menu...');
-    // In production, this would show wallet options, disconnect, etc.
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -156,14 +155,15 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
               </select>
             </div>
 
-            
-
-                
-              
-           
+            {/* User Balance (if connected) */}
+            {user && (
+              <div className="hidden md:flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-1">
+                <span className="text-purple-400 text-sm font-semibold">{user.balances.AGT} AGT</span>
+              </div>
+            )}
 
             {/* Wallet Connection */}
-            {isWalletConnected ? (
+            {isWalletConnected && user ? (
               <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-2">
                 <Wallet className="w-4 h-4 text-green-400" />
                 <span className="text-white text-sm">{formatAddress(walletAddress || '')}</span>
@@ -177,10 +177,11 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
             ) : (
               <button
                 onClick={onConnectWallet}
-                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2"
+                disabled={isLoading}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
               >
                 <Wallet className="w-4 h-4" />
-                <span>Wallet</span>
+                <span>{isLoading ? 'Connecting...' : 'Connect Wallet'}</span>
               </button>
             )}
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Unlock, TrendingUp, Clock, DollarSign, Percent } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
 
 interface StakingPool {
   id: string;
@@ -17,6 +18,7 @@ export default function Staking() {
   const [selectedPool, setSelectedPool] = useState<string>('');
   const [stakeAmount, setStakeAmount] = useState<string>('');
   const [userStakes, setUserStakes] = useState<any[]>([]);
+  const { user, updateBalance } = useUser();
 
   const stakingPools: StakingPool[] = [
     {
@@ -87,6 +89,11 @@ export default function Staking() {
   }, []);
 
   const handleStake = (poolId: string) => {
+    if (!user) {
+      alert('Please connect your wallet to stake tokens.');
+      return;
+    }
+
     if (!stakeAmount || parseFloat(stakeAmount) <= 0) {
       alert('Please enter a valid stake amount');
       return;
@@ -100,7 +107,17 @@ export default function Staking() {
       return;
     }
 
-    // Simulate staking
+    // Check if user has enough tokens
+    const userBalance = user.balances[pool.token as keyof typeof user.balances] || 0;
+    if (userBalance < parseFloat(stakeAmount)) {
+      alert(`Insufficient ${pool.token} tokens. You have ${userBalance} ${pool.token}.`);
+      return;
+    }
+
+    // Deduct tokens from balance
+    updateBalance(pool.token, -parseFloat(stakeAmount));
+
+    // Create new stake
     const newStake = {
       id: Date.now().toString(),
       poolId,
@@ -119,8 +136,21 @@ export default function Staking() {
   };
 
   const handleUnstake = (stakeId: string) => {
-    setUserStakes(prev => prev.filter(stake => stake.id !== stakeId));
-    alert('Successfully unstaked!');
+    const stake = userStakes.find(s => s.id === stakeId);
+    if (!stake) return;
+
+    const timeRemaining = calculateTimeRemaining(stake.startDate, stake.lockPeriod);
+    if (timeRemaining !== 'Unlocked') {
+      alert('Cannot unstake before lock period ends.');
+      return;
+    }
+
+    // Return staked tokens plus rewards
+    const totalReturn = stake.amount + stake.estimatedRewards;
+    updateBalance(stake.token, totalReturn);
+
+    setUserStakes(prev => prev.filter(s => s.id !== stakeId));
+    alert(`Successfully unstaked! Received ${totalReturn.toFixed(2)} ${stake.token}`);
   };
 
   const calculateTimeRemaining = (startDate: Date, lockPeriod: number) => {
@@ -185,6 +215,31 @@ export default function Staking() {
           </div>
         </div>
 
+        {/* User Balance Display */}
+        {user && (
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+            <h3 className="text-xl font-bold text-white mb-4">Your Token Balances</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-400">{user.balances.AGT}</div>
+                <div className="text-gray-400 text-sm">AGT Tokens</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400">{user.balances.NFT}</div>
+                <div className="text-gray-400 text-sm">NFT Tokens</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">{user.balances.TOUR}</div>
+                <div className="text-gray-400 text-sm">TOUR Tokens</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-400">{user.balances.GOV}</div>
+                <div className="text-gray-400 text-sm">GOV Tokens</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Staking Pools */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {stakingPools.map(pool => (
@@ -232,10 +287,11 @@ export default function Staking() {
                 />
                 <button
                   onClick={() => handleStake(pool.id)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                  disabled={!user}
+                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   <Lock className="w-4 h-4" />
-                  <span>Stake {pool.token}</span>
+                  <span>{!user ? 'Connect Wallet to Stake' : `Stake ${pool.token}`}</span>
                 </button>
               </div>
             </div>

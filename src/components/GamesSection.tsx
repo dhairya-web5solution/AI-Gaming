@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Filter, Search, Grid, List, ExternalLink } from 'lucide-react';
+import { useGame } from '../contexts/GameContext';
 import GameCard from './GameCard';
 
-export default function GamesSection() {
+interface GamesSectionProps {
+  onGameSelect?: (gameId: string) => void;
+}
+
+export default function GamesSection({ onGameSelect }: GamesSectionProps) {
+  const { games, getFeaturedGames, getGamesByCategory } = useGame();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,205 +16,16 @@ export default function GamesSection() {
   const [isLoading, setIsLoading] = useState(false);
 
   const categories = [
-    { id: 'all', name: 'All Games', count: 47 },
-    { id: 'prediction', name: 'Prediction', count: 1 },
-    { id: 'fantasy', name: 'Fantasy', count: 1 },
-    { id: 'strategy', name: 'Strategy', count: 12 },
-    { id: 'rpg', name: 'RPG', count: 8 },
-    { id: 'action', name: 'Action', count: 15 },
-    { id: 'puzzle', name: 'Puzzle', count: 6 },
-    { id: 'racing', name: 'Racing', count: 4 }
+    { id: 'all', name: 'All Games', count: games.length },
+    { id: 'prediction', name: 'Prediction', count: games.filter(g => g.category === 'Prediction').length },
+    { id: 'fantasy', name: 'Fantasy', count: games.filter(g => g.category === 'Fantasy').length },
+    { id: 'strategy', name: 'Strategy', count: games.filter(g => g.category === 'Strategy').length },
+    { id: 'rpg', name: 'RPG', count: games.filter(g => g.category === 'RPG').length },
+    { id: 'racing', name: 'Racing', count: games.filter(g => g.category === 'Racing').length },
+    { id: 'puzzle', name: 'Puzzle', count: games.filter(g => g.category === 'Puzzle').length }
   ];
 
-  const allGames = [
-    {
-      id: 'prediction',
-      title: 'Prediction Markets',
-      description: 'Predict future events and earn rewards based on your accuracy',
-      image: 'https://images.pexels.com/photos/590020/pexels-photo-590020.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Prediction',
-      players: 15000,
-      rating: 4.3,
-      rewards: '$250/day',
-      isNew: true,
-      isTrending: true,
-      isExternal: true,
-      externalUrl: 'https://prediction.web5product.com/'
-    },
-    {
-      id: 'fantasy',
-      title: 'Fantasy Games',
-      description: 'Create your dream team and compete in fantasy leagues',
-      image: 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Fantasy',
-      players: 28000,
-      rating: 4.6,
-      rewards: '$350/day',
-      isNew: true,
-      isTrending: true,
-      isExternal: true,
-      externalUrl: 'https://fantasy.web5product.com/'
-    },
-    {
-      id: '1',
-      title: 'Cyber Warriors',
-      description: 'Epic sci-fi strategy game with AI-powered opponents and massive rewards',
-      image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Strategy',
-      players: 25000,
-      rating: 4.8,
-      rewards: '$500/day',
-      isNew: true,
-      isTrending: true,
-      isExternal: false
-    },
-    {
-      id: '2',
-      title: 'Dragon Realm',
-      description: 'Immersive RPG with blockchain-based character progression',
-      image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'RPG',
-      players: 18000,
-      rating: 4.6,
-      rewards: '$300/day',
-      isNew: false,
-      isTrending: true,
-      isExternal: false
-    },
-    {
-      id: '3',
-      title: 'Speed Legends',
-      description: 'High-octane racing with NFT cars and tournament prizes',
-      image: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Racing',
-      players: 12000,
-      rating: 4.7,
-      rewards: '$200/day',
-      isNew: true,
-      isTrending: false,
-      isExternal: false
-    },
-    {
-      id: '4',
-      title: 'Puzzle Master',
-      description: 'Brain-teasing puzzles with cryptocurrency rewards',
-      image: 'https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Puzzle',
-      players: 8000,
-      rating: 4.5,
-      rewards: '$150/day',
-      isNew: false,
-      isTrending: false,
-      isExternal: false
-    },
-    {
-      id: '5',
-      title: 'Battle Arena',
-      description: 'Intense PvP battles with real-time rewards',
-      image: 'https://images.pexels.com/photos/275033/pexels-photo-275033.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Action',
-      players: 35000,
-      rating: 4.9,
-      rewards: '$750/day',
-      isNew: false,
-      isTrending: true,
-      isExternal: false
-    },
-    {
-      id: '6',
-      title: 'Space Odyssey',
-      description: 'Explore the galaxy and earn tokens through discovery',
-      image: 'https://images.pexels.com/photos/586063/pexels-photo-586063.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Strategy',
-      players: 22000,
-      rating: 4.4,
-      rewards: '$400/day',
-      isNew: true,
-      isTrending: false,
-      isExternal: false
-    },
-    // Additional games for load more functionality
-    {
-      id: '7',
-      title: 'Mech Warriors',
-      description: 'Pilot giant mechs in strategic combat scenarios',
-      image: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Action',
-      players: 19000,
-      rating: 4.5,
-      rewards: '$320/day',
-      isNew: false,
-      isTrending: false,
-      isExternal: false
-    },
-    {
-      id: '8',
-      title: 'Crystal Quest',
-      description: 'Magical adventure with rare crystal NFT rewards',
-      image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'RPG',
-      players: 14000,
-      rating: 4.7,
-      rewards: '$280/day',
-      isNew: true,
-      isTrending: false,
-      isExternal: false
-    },
-    {
-      id: '9',
-      title: 'Neon Racers',
-      description: 'Futuristic racing with customizable vehicles',
-      image: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Racing',
-      players: 16000,
-      rating: 4.6,
-      rewards: '$240/day',
-      isNew: false,
-      isTrending: true,
-      isExternal: false
-    },
-    {
-      id: '10',
-      title: 'Mind Bender',
-      description: 'Advanced puzzle challenges with AI assistance',
-      image: 'https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Puzzle',
-      players: 9500,
-      rating: 4.8,
-      rewards: '$180/day',
-      isNew: true,
-      isTrending: false,
-      isExternal: false
-    },
-    {
-      id: '11',
-      title: 'Galactic Empire',
-      description: 'Build and manage your space empire',
-      image: 'https://images.pexels.com/photos/586063/pexels-photo-586063.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Strategy',
-      players: 21000,
-      rating: 4.4,
-      rewards: '$380/day',
-      isNew: false,
-      isTrending: false,
-      isExternal: false
-    },
-    {
-      id: '12',
-      title: 'Combat Zone',
-      description: 'Tactical shooter with team-based gameplay',
-      image: 'https://images.pexels.com/photos/275033/pexels-photo-275033.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Action',
-      players: 31000,
-      rating: 4.7,
-      rewards: '$680/day',
-      isNew: false,
-      isTrending: true,
-      isExternal: false
-    }
-  ];
-
-  const filteredGames = allGames.filter(game => {
+  const filteredGames = games.filter(game => {
     const matchesCategory = selectedCategory === 'all' || game.category.toLowerCase() === selectedCategory;
     const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          game.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -219,18 +36,20 @@ export default function GamesSection() {
   const hasMoreGames = displayedGames < filteredGames.length;
 
   const handlePlayGame = (gameId: string) => {
-    const game = allGames.find(g => g.id === gameId);
-    if (game?.isExternal && game.externalUrl) {
-      window.open(game.externalUrl, '_blank');
+    if (onGameSelect) {
+      onGameSelect(gameId);
     } else {
-      console.log(`Starting game: ${gameId}`);
-      // In production, this would redirect to the game interface
+      const game = games.find(g => g.id === gameId);
+      if (game?.isExternal && game.externalUrl) {
+        window.open(game.externalUrl, '_blank');
+      } else {
+        console.log(`Starting game: ${gameId}`);
+      }
     }
   };
 
   const handleLoadMore = async () => {
     setIsLoading(true);
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     setDisplayedGames(prev => prev + 6);
     setIsLoading(false);
@@ -238,12 +57,12 @@ export default function GamesSection() {
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    setDisplayedGames(6); // Reset to initial count when changing category
+    setDisplayedGames(6);
   };
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
-    setDisplayedGames(6); // Reset to initial count when searching
+    setDisplayedGames(6);
   };
 
   return (

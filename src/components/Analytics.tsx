@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, BarChart3, PieChart, Activity, DollarSign, Users, Trophy } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
 
 interface ChartData {
   label: string;
@@ -10,16 +11,17 @@ interface ChartData {
 export default function Analytics() {
   const [timeframe, setTimeframe] = useState('7d');
   const [selectedMetric, setSelectedMetric] = useState('earnings');
+  const { user } = useUser();
   
   const [analyticsData, setAnalyticsData] = useState({
-    totalEarnings: 12450.75,
-    totalGamesPlayed: 156,
-    winRate: 68.5,
+    totalEarnings: user?.stats.totalEarnings || 0,
+    totalGamesPlayed: user?.stats.gamesPlayed || 0,
+    winRate: user?.stats.winRate || 0,
     averageSessionTime: 45,
-    rank: 1247,
-    totalStaked: 5000,
-    stakingRewards: 125.50,
-    nftValue: 8750
+    rank: user?.stats.rank || 999999,
+    totalStaked: 0,
+    stakingRewards: 0,
+    nftValue: 0
   });
 
   const timeframes = [
@@ -38,42 +40,60 @@ export default function Analytics() {
 
   // Mock chart data
   const earningsData: ChartData[] = [
-    { label: 'Mon', value: 1250, change: 5.2 },
-    { label: 'Tue', value: 1890, change: 12.1 },
-    { label: 'Wed', value: 1650, change: -3.4 },
-    { label: 'Thu', value: 2100, change: 8.7 },
-    { label: 'Fri', value: 1950, change: 2.3 },
-    { label: 'Sat', value: 2300, change: 15.2 },
-    { label: 'Sun', value: 2050, change: 6.8 }
+    { label: 'Mon', value: user ? user.stats.totalEarnings * 0.1 : 125, change: 5.2 },
+    { label: 'Tue', value: user ? user.stats.totalEarnings * 0.15 : 189, change: 12.1 },
+    { label: 'Wed', value: user ? user.stats.totalEarnings * 0.13 : 165, change: -3.4 },
+    { label: 'Thu', value: user ? user.stats.totalEarnings * 0.17 : 210, change: 8.7 },
+    { label: 'Fri', value: user ? user.stats.totalEarnings * 0.16 : 195, change: 2.3 },
+    { label: 'Sat', value: user ? user.stats.totalEarnings * 0.18 : 230, change: 15.2 },
+    { label: 'Sun', value: user ? user.stats.totalEarnings * 0.11 : 205, change: 6.8 }
   ];
 
   const gamePerformance = [
-    { game: 'Cyber Warriors', earnings: 4500, games: 45, winRate: 72 },
-    { game: 'Dragon Realm', earnings: 3200, games: 38, winRate: 65 },
-    { game: 'Speed Legends', earnings: 2800, games: 42, winRate: 58 },
-    { game: 'Battle Arena', earnings: 1950, games: 31, winRate: 74 }
+    { game: 'Cyber Warriors', earnings: user ? user.stats.totalEarnings * 0.4 : 450, games: Math.floor((user?.stats.gamesPlayed || 45) * 0.4), winRate: user?.stats.winRate || 72 },
+    { game: 'Dragon Realm', earnings: user ? user.stats.totalEarnings * 0.3 : 320, games: Math.floor((user?.stats.gamesPlayed || 38) * 0.3), winRate: (user?.stats.winRate || 65) - 7 },
+    { game: 'Speed Legends', earnings: user ? user.stats.totalEarnings * 0.2 : 280, games: Math.floor((user?.stats.gamesPlayed || 42) * 0.25), winRate: (user?.stats.winRate || 58) - 14 },
+    { game: 'Battle Arena', earnings: user ? user.stats.totalEarnings * 0.1 : 195, games: Math.floor((user?.stats.gamesPlayed || 31) * 0.2), winRate: (user?.stats.winRate || 74) + 2 }
   ];
 
   const portfolioData = [
-    { name: 'Gaming Tokens', value: 45, amount: 5625 },
-    { name: 'NFT Assets', value: 35, amount: 4375 },
-    { name: 'Staking Rewards', value: 15, amount: 1875 },
-    { name: 'Tournament Prizes', value: 5, amount: 625 }
+    { name: 'Gaming Tokens', value: 45, amount: user ? user.balances.AGT * 5 : 5625 },
+    { name: 'NFT Assets', value: 35, amount: user ? user.balances.NFT * 87.5 : 4375 },
+    { name: 'Staking Rewards', value: 15, amount: user ? user.balances.TOUR * 75 : 1875 },
+    { name: 'Tournament Prizes', value: 5, amount: user ? user.balances.GOV * 6.25 : 625 }
   ];
+
+  useEffect(() => {
+    // Update analytics data when user changes
+    if (user) {
+      setAnalyticsData(prev => ({
+        ...prev,
+        totalEarnings: user.stats.totalEarnings,
+        totalGamesPlayed: user.stats.gamesPlayed,
+        winRate: user.stats.winRate,
+        rank: user.stats.rank,
+        totalStaked: user.balances.AGT + user.balances.NFT + user.balances.TOUR + user.balances.GOV,
+        stakingRewards: user.stats.totalEarnings * 0.1,
+        nftValue: user.balances.NFT * 87.5
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     // Simulate real-time data updates
     const interval = setInterval(() => {
-      setAnalyticsData(prev => ({
-        ...prev,
-        totalEarnings: prev.totalEarnings + (Math.random() * 10 - 5),
-        stakingRewards: prev.stakingRewards + (Math.random() * 0.5),
-        rank: prev.rank + Math.floor(Math.random() * 10 - 5)
-      }));
+      if (user) {
+        setAnalyticsData(prev => ({
+          ...prev,
+          totalEarnings: prev.totalEarnings + (Math.random() * 10 - 5),
+          stakingRewards: prev.stakingRewards + (Math.random() * 0.5),
+          rank: Math.max(1, prev.rank + Math.floor(Math.random() * 10 - 5))
+        }));
+      }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   const StatCard = ({ title, value, change, icon: Icon, prefix = '', suffix = '' }: any) => (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300">
@@ -92,6 +112,28 @@ export default function Analytics() {
       <div className="text-gray-400 text-sm">{title}</div>
     </div>
   );
+
+  if (!user) {
+    return (
+      <section id="analytics" className="py-20 bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Analytics Dashboard
+          </h2>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+            Connect your wallet to view your personalized gaming analytics and performance insights
+          </p>
+          <div className="bg-gray-800 rounded-xl p-8 border border-gray-700">
+            <Trophy className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Connect Wallet to View Analytics</h3>
+            <p className="text-gray-400">
+              Your personalized dashboard will show earnings, win rates, portfolio insights, and more!
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="analytics" className="py-20 bg-gray-900">
@@ -194,11 +236,11 @@ export default function Analytics() {
                     <div className="bg-gray-700 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${(data.value / 2500) * 100}%` }}
+                        style={{ width: `${Math.min((data.value / Math.max(...earningsData.map(d => d.value))) * 100, 100)}%` }}
                       />
                     </div>
                   </div>
-                  <span className="text-white font-semibold w-16 text-right">${data.value}</span>
+                  <span className="text-white font-semibold w-16 text-right">${data.value.toFixed(0)}</span>
                   <span className={`text-sm w-12 text-right ${data.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                     {data.change >= 0 ? '+' : ''}{data.change}%
                   </span>
@@ -227,7 +269,7 @@ export default function Analytics() {
                   </div>
                   <div className="text-right">
                     <div className="text-white font-semibold">{item.value}%</div>
-                    <div className="text-gray-400 text-sm">${item.amount}</div>
+                    <div className="text-gray-400 text-sm">${item.amount.toFixed(0)}</div>
                   </div>
                 </div>
               ))}
@@ -256,7 +298,7 @@ export default function Analytics() {
                       <span className="text-white font-medium">{game.game}</span>
                     </td>
                     <td className="text-right py-4">
-                      <span className="text-green-400 font-semibold">${game.earnings}</span>
+                      <span className="text-green-400 font-semibold">${game.earnings.toFixed(0)}</span>
                     </td>
                     <td className="text-right py-4">
                       <span className="text-white">{game.games}</span>
@@ -267,7 +309,7 @@ export default function Analytics() {
                       </span>
                     </td>
                     <td className="text-right py-4">
-                      <span className="text-white">${(game.earnings / game.games).toFixed(2)}</span>
+                      <span className="text-white">${game.games > 0 ? (game.earnings / game.games).toFixed(2) : '0.00'}</span>
                     </td>
                   </tr>
                 ))}
@@ -283,11 +325,11 @@ export default function Analytics() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-400">Total Staked</span>
-                <span className="text-white font-semibold">${analyticsData.totalStaked}</span>
+                <span className="text-white font-semibold">{analyticsData.totalStaked.toFixed(0)} Tokens</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Rewards Earned</span>
-                <span className="text-green-400 font-semibold">${analyticsData.stakingRewards}</span>
+                <span className="text-green-400 font-semibold">${analyticsData.stakingRewards.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">APY</span>
@@ -301,11 +343,11 @@ export default function Analytics() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-400">Total Value</span>
-                <span className="text-white font-semibold">${analyticsData.nftValue}</span>
+                <span className="text-white font-semibold">${analyticsData.nftValue.toFixed(0)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Items Owned</span>
-                <span className="text-white font-semibold">23</span>
+                <span className="text-white font-semibold">{user.balances.NFT}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">24h Change</span>
