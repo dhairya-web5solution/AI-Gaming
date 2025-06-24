@@ -173,7 +173,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
 
                 
               
-            )}
+           
 
             {/* Wallet Connection */}
             {isWalletConnected ? (
