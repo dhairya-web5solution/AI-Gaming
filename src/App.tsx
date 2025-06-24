@@ -29,23 +29,27 @@ function AppContent() {
   const [selectedTournament, setSelectedTournament] = useState<any>(null);
   const [showTournamentModal, setShowTournamentModal] = useState(false);
 
-  // Show onboarding for new users
+  // Show onboarding for new users immediately after wallet connection
   useEffect(() => {
     if (user && user.walletConnected && !user.isOnboarded) {
-      setShowOnboarding(true);
+      // Small delay to ensure smooth transition
+      const timer = setTimeout(() => {
+        setShowOnboarding(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [user]);
 
   // Auto-show AI agent after onboarding completion
   useEffect(() => {
-    if (user && user.isOnboarded) {
+    if (user && user.isOnboarded && !showOnboarding) {
       const timer = setTimeout(() => {
         setShowAIAgent(true);
-      }, 2000); // Show 2 seconds after onboarding
+      }, 1500); // Show 1.5 seconds after onboarding
 
       return () => clearTimeout(timer);
     }
-  }, [user?.isOnboarded]);
+  }, [user?.isOnboarded, showOnboarding]);
 
   const handleConnectWallet = async () => {
     await connectWallet();
@@ -108,7 +112,7 @@ function AppContent() {
         
         <Footer />
         
-        {/* Onboarding Flow */}
+        {/* Enhanced Onboarding Flow - Higher priority */}
         <OnboardingFlow 
           isOpen={showOnboarding} 
           onClose={handleOnboardingComplete}
@@ -134,35 +138,60 @@ function AppContent() {
         />
         
         {/* AI Agent - Show for all users, not just onboarded */}
-        {showAIAgent && (
+        {showAIAgent && !showOnboarding && (
           <AIAgent onClose={() => setShowAIAgent(false)} />
         )}
         
-        {/* Global AI Assistant Toggle - Show for all users */}
-        {!showAIAgent && (
+        {/* Global AI Assistant Toggle - Show for all users when not in onboarding */}
+        {!showAIAgent && !showOnboarding && (
           <button
             onClick={() => setShowAIAgent(true)}
-            className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-500 to-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 animate-pulse"
+            className="fixed bottom-4 right-4 z-40 bg-gradient-to-r from-purple-500 to-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 animate-pulse group"
             title="Open AI Assistant"
           >
-            <Bot className="w-6 h-6" />
+            <Bot className="w-6 h-6 group-hover:scale-110 transition-transform" />
           </button>
         )}
 
-        {/* Wallet Connection Prompt for Non-Connected Users */}
-        {!user?.walletConnected && (
-          <div className="fixed bottom-4 left-4 z-40 bg-gray-800 border border-gray-700 rounded-xl p-4 max-w-sm">
-            <h3 className="text-white font-semibold mb-2">Connect Your Wallet</h3>
-            <p className="text-gray-400 text-sm mb-3">
-              Connect your wallet to start playing games and earning rewards!
+        {/* Enhanced Wallet Connection Prompt for Non-Connected Users */}
+        {!user?.walletConnected && !showOnboarding && (
+          <div className="fixed bottom-4 left-4 z-40 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm shadow-2xl backdrop-blur-sm">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                <Bot className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-lg">Welcome to AI Gaming!</h3>
+                <p className="text-gray-400 text-sm">Your gaming adventure awaits</p>
+              </div>
+            </div>
+            <p className="text-gray-300 text-sm mb-4">
+              Connect your wallet to start playing games, earning rewards, and accessing our DeFi features!
             </p>
-            <button
-              onClick={handleConnectWallet}
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50"
-            >
-              {isLoading ? 'Connecting...' : 'Connect Wallet'}
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={handleConnectWallet}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 flex items-center justify-center space-x-2"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Connecting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Bot className="w-4 h-4" />
+                    <span>Connect Wallet</span>
+                  </>
+                )}
+              </button>
+              <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+                <span>🔒 Secure</span>
+                <span>⚡ Fast</span>
+                <span>🎁 Bonus Included</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
