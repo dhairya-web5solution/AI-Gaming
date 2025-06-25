@@ -149,7 +149,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     },
     {
       id: 'dream-league',
-      title: 'Dream League Champions',
+      title: 'Dream League',
       description: 'Build your ultimate fantasy team across multiple sports',
       image: 'https://images.pexels.com/photos/1618200/pexels-photo-1618200.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
       category: 'Fantasy',
