@@ -100,7 +100,10 @@ export default function About() {
     // In production, this would open the actual LinkedIn profile
   };
 
-  
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    // Hide the image completely when it fails to load
+    
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 pt-20">
