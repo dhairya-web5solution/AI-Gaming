@@ -14,21 +14,21 @@ export default function About() {
       name: "Dhairya Patel",
       role: "CTO & Co-Founder",
       image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/dhairya.png",
-      bio: "Ex-Ethereum core developer, expert in DeFi protocols and smart contracts",
+      bio: "Ex-LATOKEN listing Head, expert in DeFi protocols and Blockchain",
       linkedin: "#"
     },
     {
       name: "Sarvesh Tiwari",
       role: "Blockchain Development Director",
       image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/sarvesh-2.jpg",
-      bio: "Former Ubisoft lead designer with 15+ years in AAA game development",
+      bio: "Former Microsoft Developer and expert in Blockchain and AI development",
       linkedin: "#"
     },
     {
       name: "Awani Pandey",
       role: "Business Development Director",
       image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/awani.jpg",
-      bio: "PhD in Machine Learning from MIT, specialized in gaming AI and NLP",
+      bio: "Former BDM in Cognizant, specialized in Business Developemnt and Managements",
       linkedin: "#"
     }
   ];
