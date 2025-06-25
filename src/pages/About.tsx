@@ -6,21 +6,21 @@ export default function About() {
     {
       name: "Ujjawal",
       role: "CEO & Co-Founder",
-      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/ujjawal.jpeg",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/ujjawal.jpeg",
       bio: "Former Google AI researcher with 10+ years in gaming and blockchain",
       linkedin: "#"
     },
     {
       name: "Dhairya Patel",
       role: "CTO & Co-Founder",
-      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/dhairya.png",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/dhairya.png",
       bio: "Ex-Ethereum core developer, expert in DeFi protocols and smart contracts",
       linkedin: "#"
     },
     {
       name: "Sarvesh Tiwari",
       role: "Blockchain Development Director",
-      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/sarvesh.png",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/sarvesh.jpg",
       bio: "Former Ubisoft lead designer with 15+ years in AAA game development",
       linkedin: "#"
     },
