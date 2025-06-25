@@ -243,7 +243,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     {
       id: 'warriors king',
       title: 'Warriors King',
-      description: 'Epic sci-fi strategy game with AI-powered opponents and massive rewards',
+      description: 'Command armies and conquer kingdoms in this medieval strategy game',
       image: 'https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
       category: 'Strategy',
       players: 25000,
