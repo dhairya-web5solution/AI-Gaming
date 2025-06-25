@@ -164,23 +164,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       entryFee: 18,
       maxReward: 760
     },
-    {
-      id: 'fantasy-kingdom',
-      title: 'Fantasy Kingdom',
-      description: 'Medieval fantasy world with strategic team building and battles',
-      image: 'https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Fantasy',
-      players: 19500,
-      rating: 4.4,
-      rewards: '$290/day',
-      isNew: true,
-      isTrending: false,
-      isExternal: false,
-      mechanics: ['Hero Collection', 'Battle Strategy', 'Kingdom Building'],
-      nftUsage: ['Hero Cards', 'Weapons', 'Castle Upgrades'],
-      entryFee: 14,
-      maxReward: 580
-    },
+    
 
     // TG Mini Games
     {
@@ -361,6 +345,23 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     },
 
     // RPG Games
+    {
+      id: 'CS Go',
+      title: 'CS GO',
+      description: 'Awesome RPG with blockchain-based character progression in Field',
+      image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
+      category: 'RPG',
+      players: 18000,
+      rating: 4.6,
+      rewards: '$300/day',
+      isNew: false,
+      isTrending: true,
+      isExternal: false,
+      mechanics: ['Character Progression', 'Quest System', 'Dragon Battles'],
+      nftUsage: ['Dragon Companions', 'Magic Items', 'Character Skins'],
+      entryFee: 20,
+      maxReward: 600
+    },
     {
       id: 'dragon-realm',
       title: 'Dragon Realm',
