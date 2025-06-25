@@ -19,6 +19,7 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
     { id: 'all', name: 'All Games', count: games.length },
     { id: 'prediction', name: 'Prediction', count: games.filter(g => g.category === 'Prediction').length },
     { id: 'fantasy', name: 'Fantasy', count: games.filter(g => g.category === 'Fantasy').length },
+    { id: 'tg-mini-games', name: 'TG Mini Games', count: games.filter(g => g.category === 'TG Mini Games').length },
     { id: 'strategy', name: 'Strategy', count: games.filter(g => g.category === 'Strategy').length },
     { id: 'rpg', name: 'RPG', count: games.filter(g => g.category === 'RPG').length },
     { id: 'racing', name: 'Racing', count: games.filter(g => g.category === 'Racing').length },
@@ -26,7 +27,9 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
   ];
 
   const filteredGames = games.filter(game => {
-    const matchesCategory = selectedCategory === 'all' || game.category.toLowerCase() === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || 
+      (selectedCategory === 'tg-mini-games' && game.category === 'TG Mini Games') ||
+      (selectedCategory !== 'tg-mini-games' && game.category.toLowerCase() === selectedCategory);
     const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          game.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
