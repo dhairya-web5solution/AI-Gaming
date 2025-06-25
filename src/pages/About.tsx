@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Target, Lightbulb, Award, Globe, Zap, Shield, Rocket } from 'lucide-react';
+import { Users, Target, Lightbulb, Award, Globe, Zap, Shield, Rocket, User } from 'lucide-react';
 
 export default function About() {
   const teamMembers = [
