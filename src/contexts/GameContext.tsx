@@ -237,25 +237,26 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       entryFee: 5,
       maxReward: 320
     },
-    {
-      id: 'telegram-tycoon',
-      title: 'Telegram Tycoon',
-      description: 'Build your business empire through Telegram mini games',
-      image: 'https://images.pexels.com/photos/590016/pexels-photo-590016.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'TG Mini Games',
-      players: 21000,
-      rating: 4.2,
-      rewards: '$200/day',
-      isNew: false,
-      isTrending: false,
-      isExternal: false,
-      mechanics: ['Business Building', 'Resource Management', 'Trading'],
-      nftUsage: ['Business Cards', 'Property Deeds', 'Investment Tokens'],
-      entryFee: 10,
-      maxReward: 400
-    },
+    
 
     // Strategy Games
+    {
+      id: 'warriors king',
+      title: 'Warriors King',
+      description: 'Epic sci-fi strategy game with AI-powered opponents and massive rewards',
+      image: 'https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
+      category: 'Strategy',
+      players: 25000,
+      rating: 4.8,
+      rewards: '$500/day',
+      isNew: true,
+      isTrending: true,
+      isExternal: false,
+      mechanics: ['Real-time Strategy', 'AI Opponents', 'Resource Management'],
+      nftUsage: ['Warrior Characters', 'Weapons', 'Base Structures'],
+      entryFee: 25,
+      maxReward: 1000
+    },
     {
       id: 'cyber-warriors',
       title: 'Cyber Warriors',
