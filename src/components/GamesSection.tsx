@@ -12,7 +12,7 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [displayedGames, setDisplayedGames] = useState(6);
+  const [displayedGames, setDisplayedGames] = useState(12);
   const [isLoading, setIsLoading] = useState(false);
 
   const categories = [
@@ -23,7 +23,10 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
     { id: 'strategy', name: 'Strategy', count: games.filter(g => g.category === 'Strategy').length },
     { id: 'rpg', name: 'RPG', count: games.filter(g => g.category === 'RPG').length },
     { id: 'racing', name: 'Racing', count: games.filter(g => g.category === 'Racing').length },
-    { id: 'puzzle', name: 'Puzzle', count: games.filter(g => g.category === 'Puzzle').length }
+    { id: 'puzzle', name: 'Puzzle', count: games.filter(g => g.category === 'Puzzle').length },
+    { id: 'action', name: 'Action', count: games.filter(g => g.category === 'Action').length },
+    { id: 'simulation', name: 'Simulation', count: games.filter(g => g.category === 'Simulation').length },
+    { id: 'sports', name: 'Sports', count: games.filter(g => g.category === 'Sports').length }
   ];
 
   const filteredGames = games.filter(game => {
@@ -54,18 +57,18 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
   const handleLoadMore = async () => {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
-    setDisplayedGames(prev => prev + 6);
+    setDisplayedGames(prev => prev + 12);
     setIsLoading(false);
   };
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    setDisplayedGames(6);
+    setDisplayedGames(12);
   };
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
-    setDisplayedGames(6);
+    setDisplayedGames(12);
   };
 
   return (
@@ -79,12 +82,15 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             Discover amazing games with AI-powered gameplay and earn real rewards
           </p>
+          <div className="mt-4 text-purple-400 font-semibold">
+            {games.length}+ Games Available
+          </div>
         </div>
 
         {/* Filters and Search */}
         <div className="flex flex-col lg:flex-row justify-between items-center mb-8 space-y-4 lg:space-y-0">
           {/* Categories */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-w-4xl">
             {categories.map(category => (
               <button
                 key={category.id}
@@ -135,7 +141,7 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
         {/* Games Grid */}
         <div className={`grid gap-6 ${
           viewMode === 'grid' 
-            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
             : 'grid-cols-1'
         }`}>
           {displayedGamesList.map(game => (
@@ -168,7 +174,7 @@ export default function GamesSection({ onGameSelect }: GamesSectionProps) {
               onClick={() => {
                 setSelectedCategory('all');
                 setSearchTerm('');
-                setDisplayedGames(6);
+                setDisplayedGames(12);
               }}
               className="mt-4 text-purple-400 hover:text-purple-300 transition-colors"
             >
