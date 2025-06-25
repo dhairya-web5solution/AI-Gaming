@@ -6,7 +6,7 @@ export default function About() {
     {
       name: "Ujjawal",
       role: "CEO & Co-Founder",
-      image: "/img/ujjawal.jpeg",
+      image: "/dhairya-web5solution/AI-Gaming/refs/heads/main/img/ujjawal.jpeg",
       bio: "Former Google AI researcher with 10+ years in gaming and blockchain",
       linkedin: "#"
     },
