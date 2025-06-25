@@ -147,23 +147,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       entryFee: 12,
       maxReward: 600
     },
-    {
-      id: 'dream-league',
-      title: 'Dream League',
-      description: 'Build your ultimate fantasy team across multiple sports',
-      image: 'https://images.pexels.com/photos/1618200/pexels-photo-1618200.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
-      category: 'Fantasy',
-      players: 31000,
-      rating: 4.7,
-      rewards: '$380/day',
-      isNew: false,
-      isTrending: true,
-      isExternal: false,
-      mechanics: ['Multi-Sport Fantasy', 'Draft System', 'Trade Market'],
-      nftUsage: ['Legendary Players', 'Stadium Cards', 'Manager Tokens'],
-      entryFee: 18,
-      maxReward: 760
-    },
+    
     
 
     // TG Mini Games
@@ -346,8 +330,8 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
     // RPG Games
     {
-      id: 'CS Go',
-      title: 'CS GO',
+      id: 'CM 40',
+      title: 'CM 40',
       description: 'Awesome RPG with blockchain-based character progression in Field',
       image: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
       category: 'RPG',
@@ -570,6 +554,23 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     },
 
     // Puzzle Games
+    {
+      id: '2048 Game',
+      title: '2048 Game',
+      description: '2048 brain-teasing puzzles with puzzel rewards game',
+      image: 'https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
+      category: 'Puzzle',
+      players: 8000,
+      rating: 4.5,
+      rewards: '$150/day',
+      isNew: false,
+      isTrending: false,
+      isExternal: false,
+      mechanics: ['Logic Puzzles', 'Time Challenges', 'Difficulty Scaling'],
+      nftUsage: ['Puzzle Pieces', 'Solution Keys', 'Achievement Badges'],
+      entryFee: 10,
+      maxReward: 300
+    },
     {
       id: 'puzzle-master',
       title: 'Puzzle Master',
