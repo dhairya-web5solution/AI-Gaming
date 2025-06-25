@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Wallet, User, Bell, Search, Globe, Gamepad2 } from 'lucide-react';
+import { Menu, X, Wallet, User, Search, Globe, Gamepad2, LogOut, Settings, UserCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 
 interface HeaderProps {
@@ -12,24 +12,17 @@ interface HeaderProps {
 
 export default function Header({ onConnectWallet, isWalletConnected, walletAddress, isLoading }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState(3);
   const [selectedLanguage, setSelectedLanguage] = useState('EN');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const location = useLocation();
-  const { user } = useUser();
+  const { user, setUser } = useUser();
 
   const languages = [
     { code: 'EN', name: 'English' },
     { code: 'ES', name: 'Español' },
-   { code: 'FR', name: 'Français' },
+    { code: 'FR', name: 'Français' },
     { code: 'DE', name: 'Deutsch' }
-  ];
-
-  const mockNotifications = [
-    { id: 1, title: 'Tournament Starting', message: 'Cyber Warriors Championship begins in 1 hour', time: '5m ago' },
-    { id: 2, title: 'Reward Earned', message: 'You earned 50 AGT tokens from staking', time: '1h ago' },
-    { id: 3, title: 'New Game Available', message: 'Space Odyssey 2.0 is now live!', time: '2h ago' }
   ];
 
   const formatAddress = (address: string) => {
@@ -57,14 +50,21 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
     console.log(`Language changed to ${languages.find(l => l.code === langCode)?.name}`);
   };
 
-  const handleNotificationClick = (notificationId: number) => {
-    console.log(`Opening notification ${notificationId}`);
-    setShowNotifications(false);
-    setNotifications(prev => Math.max(0, prev - 1));
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    setShowUserMenu(false);
+    console.log('User logged out');
   };
 
-  const handleWalletMenu = () => {
-    console.log('Opening wallet menu...');
+  const handleProfile = () => {
+    console.log('Opening user profile...');
+    setShowUserMenu(false);
+  };
+
+  const handleSettings = () => {
+    console.log('Opening user settings...');
+    setShowUserMenu(false);
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -161,27 +161,68 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
               </div>
             )}
 
-            {/* Wallet Connection */}
+            {/* Authentication */}
             {isWalletConnected && user ? (
-              <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-2">
-                <Wallet className="w-4 h-4 text-green-400" />
-                <span className="text-white text-sm">{formatAddress(walletAddress || '')}</span>
-                <button 
-                  onClick={handleWalletMenu}
-                  className="text-gray-400 hover:text-white transition-colors"
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-2 hover:bg-gray-700 transition-colors"
                 >
-                  <User className="w-4 h-4" />
+                  <Wallet className="w-4 h-4 text-green-400" />
+                  <span className="text-white text-sm">{formatAddress(walletAddress || '')}</span>
+                  <UserCircle className="w-4 h-4 text-gray-400" />
                 </button>
+
+                {/* User Dropdown Menu */}
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-700">
+                      <p className="text-white font-semibold">{user.username}</p>
+                      <p className="text-gray-400 text-sm">Level {user.level}</p>
+                    </div>
+                    <button
+                      onClick={handleProfile}
+                      className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center space-x-2"
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Profile</span>
+                    </button>
+                    <button
+                      onClick={handleSettings}
+                      className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center space-x-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Settings</span>
+                    </button>
+                    <div className="border-t border-gray-700 mt-2 pt-2">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <button
-                onClick={onConnectWallet}
-                disabled={isLoading}
-                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
-              >
-                <Wallet className="w-4 h-4" />
-                <span>{isLoading ? 'Connecting...' : 'Connect Wallet'}</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/login"
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-gray-800"
+                >
+                  Login
+                </Link>
+                <button
+                  onClick={onConnectWallet}
+                  disabled={isLoading}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>{isLoading ? 'Connecting...' : 'Connect Wallet'}</span>
+                </button>
+              </div>
             )}
 
             {/* Mobile Menu Button */}
@@ -266,6 +307,14 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
           </div>
         )}
       </div>
+
+      {/* Click outside to close user menu */}
+      {showUserMenu && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowUserMenu(false)}
+        />
+      )}
     </header>
   );
 }

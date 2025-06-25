@@ -16,6 +16,8 @@ import Landing from './pages/Landing';
 import CreatorHub from './pages/CreatorHub';
 import Governance from './pages/Governance';
 import ReferralHub from './pages/ReferralHub';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import AIAgent from './components/AIAgent';
 import GameDetailModal from './components/GameDetailModal';
 import TournamentRegistration from './components/TournamentRegistration';
@@ -90,6 +92,8 @@ function AppContent() {
           <Route path="/creator-hub" element={<CreatorHub />} />
           <Route path="/governance" element={<Governance />} />
           <Route path="/referral" element={<ReferralHub />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
         </Routes>
         
         <Footer />
