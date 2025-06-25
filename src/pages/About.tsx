@@ -20,7 +20,7 @@ export default function About() {
     {
       name: "Sarvesh Tiwari",
       role: "Blockchain Development Director",
-      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/sarvesh.png",
+      image: "/img/sarvesh.png",
       bio: "Former Ubisoft lead designer with 15+ years in AAA game development",
       linkedin: "#"
     },
