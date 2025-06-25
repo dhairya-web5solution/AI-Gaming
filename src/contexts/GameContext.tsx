@@ -129,8 +129,8 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       maxReward: 360
     },
     {
-      id: 'cryptosee',
-      title: 'CryptoSee',
+      id: 'cryptoseed',
+      title: 'CryptoSeed',
       description: 'Delta Platinum crypto gaming experience with advanced trading features',
       image: 'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
       category: 'TG Mini Games',
