@@ -14,14 +14,14 @@ export default function About() {
       name: "Dhairya Patel",
       role: "CTO & Co-Founder",
       image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/dhairya.png",
-      bio: "Ex-LATOKEN listing Head, expert in DeFi protocols and Blockchain",
+      bio: "Ex-LATOKEN Listing Head, Expert in DeFi protocols and Blockchain",
       linkedin: "#"
     },
     {
       name: "Sarvesh Tiwari",
       role: "Blockchain Development Director",
       image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/sarvesh-2.jpg",
-      bio: "Former Microsoft Developer and expert in Blockchain and AI development",
+      bio: "Former Microsoft Developer and expert in Blockchain and AI Development",
       linkedin: "#"
     },
     {
