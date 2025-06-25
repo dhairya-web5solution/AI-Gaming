@@ -19,7 +19,7 @@ export default function About() {
     },
     {
       name: "Sarvesh Tiwari",
-      role: "Blockchain Development Director",
+      role: "Software Development Director",
       image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/sarvesh-2.jpg",
       bio: "Former Microsoft Developer and expert in Blockchain and AI Development",
       linkedin: "#"
