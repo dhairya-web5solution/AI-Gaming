@@ -6,7 +6,7 @@ export default function About() {
     {
       name: "Ujjawal",
       role: "CEO & Co-Founder",
-      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/ujjawal.jpeg",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/ujjawal.jpg",
       bio: "Former Google AI researcher with 10+ years in gaming and blockchain",
       linkedin: "#"
     },
@@ -27,7 +27,7 @@ export default function About() {
     {
       name: "Awani Pandey",
       role: "Business Development Director",
-      image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/team/awani.jpg",
       bio: "PhD in Machine Learning from MIT, specialized in gaming AI and NLP",
       linkedin: "#"
     }
