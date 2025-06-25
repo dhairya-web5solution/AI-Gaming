@@ -76,7 +76,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     },
     {
       id: 'fantasy',
-      title: 'Fantasy Games',
+      title: 'Fantasy Gaming Platform',
       description: 'Create your dream team and compete in fantasy leagues',
       image: 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop',
       category: 'Fantasy',
