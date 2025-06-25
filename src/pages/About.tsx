@@ -103,7 +103,7 @@ export default function About() {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     // Hide the image completely when it fails to load
     const target = e.target as HTMLImageElement;
-    target.style.display = 'none'; 
+    
   };
 
   return (
