@@ -6,21 +6,21 @@ export default function About() {
     {
       name: "Ujjawal",
       role: "CEO & Co-Founder",
-      image: "../img/ujjawal.jpeg",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/ujjawal.jpeg",
       bio: "Former Google AI researcher with 10+ years in gaming and blockchain",
       linkedin: "#"
     },
     {
       name: "Dhairya Patel",
       role: "CTO & Co-Founder",
-      image: "../img/dhairya.png",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/dhairya.png",
       bio: "Ex-Ethereum core developer, expert in DeFi protocols and smart contracts",
       linkedin: "#"
     },
     {
       name: "Sarvesh Tiwari",
       role: "Blockchain Development Director",
-      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/sarvesh.png?raw=true",
+      image: "https://raw.githubusercontent.com/dhairya-web5solution/AI-Gaming/refs/heads/main/img/sarvesh.png",
       bio: "Former Ubisoft lead designer with 15+ years in AAA game development",
       linkedin: "#"
     },
@@ -236,16 +236,20 @@ export default function About() {
             {teamMembers.map((member, index) => (
               <div key={index} className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 rounded-2xl p-6 border border-gray-700/50 hover:border-purple-500/30 transition-all duration-300 text-center group backdrop-blur-sm">
                 <div className="relative mb-6">
-                  <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-gradient-to-br from-purple-500 to-blue-500 p-1">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-full h-full rounded-full object-cover bg-gray-700"
-                      onError={(e) => {
-                        // Fallback to placeholder if image fails to load
-                        e.currentTarget.src = `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop`;
-                      }}
-                    />
+                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-transparent bg-gradient-to-br from-purple-500 to-blue-500 p-1">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-gray-800">
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.src = `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop`;
+                        }}
+                        loading="lazy"
+                      />
+                    </div>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
