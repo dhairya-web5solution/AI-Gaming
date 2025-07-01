@@ -18,6 +18,8 @@ import Governance from './pages/Governance';
 import ReferralHub from './pages/ReferralHub';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import UserProfile from './pages/UserProfile';
+import Settings from './pages/Settings';
 import AIAgent from './components/AIAgent';
 import GameDetailModal from './components/GameDetailModal';
 import TournamentRegistration from './components/TournamentRegistration';
@@ -89,6 +91,8 @@ function AppContent() {
           <Route path="/referral" element={<ReferralHub />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
         
         <Footer />

@@ -9,6 +9,13 @@ interface User {
   xp: number;
   isOnboarded: boolean;
   walletConnected: boolean;
+  bio?: string;
+  location?: string;
+  website?: string;
+  twitter?: string;
+  github?: string;
+  phone?: string;
+  avatar?: string;
   balances: {
     AGT: number;
     NFT: number;
@@ -34,6 +41,7 @@ interface UserContextType {
   logout: () => void;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
+  updateProfile?: (profileData: Partial<User>) => Promise<void>;
   completeOnboarding: () => void;
   updateBalance: (token: string, amount: number) => void;
   updateStats: (stats: Partial<User['stats']>) => void;
@@ -131,6 +139,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         xp: 0,
         isOnboarded: false,
         walletConnected: false,
+        bio: '',
+        location: '',
+        website: '',
+        twitter: '',
+        github: '',
+        phone: '',
+        avatar: '',
         balances: {
           AGT: 100, // Welcome bonus
           NFT: 0,
@@ -176,6 +191,32 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     if (window.ethereum && window.ethereum.removeAllListeners) {
       window.ethereum.removeAllListeners('accountsChanged');
       window.ethereum.removeAllListeners('chainChanged');
+    }
+  };
+
+  const updateProfile = async (profileData: Partial<User>) => {
+    if (!user) return;
+
+    setIsLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const updatedUser = { ...user, ...profileData };
+      setUser(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+      // Update in mock database
+      const users = getUsersFromStorage();
+      const userIndex = users.findIndex((u: any) => u.id === user.id);
+      if (userIndex !== -1) {
+        users[userIndex] = { ...users[userIndex], ...profileData };
+        saveUsersToStorage(users);
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -376,6 +417,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       logout,
       connectWallet,
       disconnectWallet,
+      updateProfile,
       completeOnboarding,
       updateBalance,
       updateStats,

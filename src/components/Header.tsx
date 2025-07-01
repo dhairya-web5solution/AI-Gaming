@@ -56,12 +56,12 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
   };
 
   const handleProfile = () => {
-    console.log('Opening user profile...');
+    window.location.href = '/profile';
     setShowUserMenu(false);
   };
 
   const handleSettings = () => {
-    console.log('Opening user settings...');
+    window.location.href = '/settings';
     setShowUserMenu(false);
   };
 
