@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, Target, Lightbulb, Award, Globe, Zap, Shield, Rocket, User, Code, TrendingUp, Activity, Database, Cpu, BarChart3, ExternalLink, Play, CheckCircle, Trophy } from 'lucide-react';
+import EarlyTestAnalytics from '../components/EarlyTestAnalytics';
 
 export default function About() {
   const teamMembers = [
@@ -221,6 +222,9 @@ export default function About() {
           </div>
         </div>
       </section>
+
+      {/* Early Test Users Analytics */}
+      <EarlyTestAnalytics />
 
       {/* Blockchain Infrastructure */}
       <section className="py-20">
