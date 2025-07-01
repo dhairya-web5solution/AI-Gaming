@@ -189,7 +189,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       // Check if MetaMask is installed
       if (typeof window.ethereum !== 'undefined') {
         try {
-          // Request account access
+          // Request account access directly - this will open MetaMask popup
           const accounts = await window.ethereum.request({
             method: 'eth_requestAccounts',
           });
@@ -202,7 +202,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
               method: 'eth_chainId',
             });
 
-            console.log('Connected to MetaMask:', { address, chainId });
+            // Get balance
+            const balance = await window.ethereum.request({
+              method: 'eth_getBalance',
+              params: [address, 'latest'],
+            });
+
+            // Convert balance from wei to ETH
+            const ethBalance = parseInt(balance, 16) / Math.pow(10, 18);
+
+            console.log('Successfully connected to MetaMask:', { 
+              address, 
+              chainId, 
+              balance: ethBalance.toFixed(4) + ' ETH' 
+            });
 
             // Update user with wallet info
             const updatedUser = {
@@ -211,7 +224,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
               walletConnected: true,
               balances: {
                 ...user.balances,
-                ETH: Math.random() * 2 + 0.1 // Mock ETH balance
+                ETH: parseFloat(ethBalance.toFixed(4))
               }
             };
             
@@ -237,22 +250,24 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             // Listen for chain changes
             window.ethereum.on('chainChanged', (chainId: string) => {
               console.log('Chain changed to:', chainId);
+              // Optionally reload the page or update UI based on new chain
             });
 
           } else {
-            throw new Error('No accounts found');
+            throw new Error('No accounts found. Please unlock MetaMask and try again.');
           }
         } catch (error: any) {
           if (error.code === 4001) {
-            throw new Error('Please connect to MetaMask to continue');
+            throw new Error('Connection rejected. Please approve the connection in MetaMask to continue.');
+          } else if (error.code === -32002) {
+            throw new Error('MetaMask is already processing a request. Please check MetaMask and try again.');
           } else {
             throw new Error('Failed to connect to MetaMask: ' + error.message);
           }
         }
       } else {
-        alert('MetaMask is not installed. Please install MetaMask to connect your wallet.\n\nVisit: https://metamask.io/download/');
-        window.open('https://metamask.io/download/', '_blank');
-        throw new Error('MetaMask not installed');
+        // MetaMask is not installed - provide clear instructions
+        throw new Error('MetaMask wallet not detected. Please install MetaMask browser extension first.');
       }
     } catch (error: any) {
       console.error('Wallet connection failed:', error);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Wallet, User, Search, Globe, Gamepad2, LogOut, Settings, UserCircle } from 'lucide-react';
+import { Menu, X, Wallet, User, Search, Globe, Gamepad2, LogOut, Settings, UserCircle, AlertCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 
 interface HeaderProps {
@@ -15,6 +15,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
   const [selectedLanguage, setSelectedLanguage] = useState('EN');
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [walletError, setWalletError] = useState('');
   const location = useLocation();
   const { user, logout, connectWallet, disconnectWallet, isAuthenticated } = useUser();
 
@@ -70,11 +71,18 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
       return;
     }
     
+    setWalletError('');
     try {
       await connectWallet();
+      setShowUserMenu(false);
     } catch (error: any) {
       console.error('Wallet connection failed:', error);
-      alert(error.message || 'Failed to connect wallet');
+      setWalletError(error.message || 'Failed to connect wallet');
+      
+      // Show error for 5 seconds
+      setTimeout(() => {
+        setWalletError('');
+      }, 5000);
     }
   };
 
@@ -211,7 +219,10 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                             <Wallet className="w-4 h-4 text-green-400" />
                             <span className="text-green-400 text-sm">Wallet Connected</span>
                           </div>
-                          <p className="text-gray-300 text-xs mb-2">{user.address}</p>
+                          <p className="text-gray-300 text-xs mb-1">{user.address}</p>
+                          {user.balances.ETH > 0 && (
+                            <p className="text-gray-400 text-xs mb-2">Balance: {user.balances.ETH} ETH</p>
+                          )}
                           <button
                             onClick={handleDisconnectWallet}
                             className="text-red-400 hover:text-red-300 text-xs transition-colors"
@@ -220,13 +231,24 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={handleConnectWallet}
-                          className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors text-sm"
-                        >
-                          <Wallet className="w-4 h-4" />
-                          <span>Connect Wallet</span>
-                        </button>
+                        <div>
+                          <button
+                            onClick={handleConnectWallet}
+                            disabled={isLoading}
+                            className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors text-sm disabled:opacity-50"
+                          >
+                            <Wallet className="w-4 h-4" />
+                            <span>{isLoading ? 'Connecting...' : 'Connect MetaMask'}</span>
+                          </button>
+                          {walletError && (
+                            <div className="mt-2 p-2 bg-red-500/20 border border-red-500/50 rounded text-xs">
+                              <div className="flex items-center space-x-1">
+                                <AlertCircle className="w-3 h-3 text-red-400" />
+                                <span className="text-red-400">{walletError}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
 
