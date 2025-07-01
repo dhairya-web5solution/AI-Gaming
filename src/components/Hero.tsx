@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, TrendingUp, Users, Trophy, ArrowRight } from 'lucide-react';
+import { Play, TrendingUp, Users, Trophy, ArrowRight, Cpu, Zap, Database } from 'lucide-react';
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -12,19 +12,37 @@ export default function Hero() {
 
   const slides = [
     {
-      title: "AI-Powered Gaming Revolution",
-      subtitle: "Experience the future of gaming with AI-enhanced gameplay and DeFi rewards",
+      title: "Gaming + AI + DeFi Revolution",
+      subtitle: "Where player behavior influences on-chain DeFi yield through intelligent AI analysis",
       image: "https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
     },
     {
-      title: "Earn While You Play",
-      subtitle: "Turn your gaming skills into real rewards with our play-to-earn ecosystem",
+      title: "Smart Contracts Live",
+      subtitle: "Deployed infrastructure for staking, game tracking, and AI-driven reward optimization",
       image: "https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
     },
     {
-      title: "Compete in Tournaments",
-      subtitle: "Join global tournaments and compete for massive prize pools",
+      title: "Real-Time Yield Adjustment",
+      subtitle: "AI classifies player behavior into risk profiles for dynamic reward strategies",
       image: "https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
+    }
+  ];
+
+  const features = [
+    {
+      icon: Cpu,
+      title: "AI Behavior Analysis",
+      description: "Real-time classification of player behavior into risk profiles"
+    },
+    {
+      icon: Database,
+      title: "On-Chain Infrastructure",
+      description: "Smart contracts for staking, tracking, and reward distribution"
+    },
+    {
+      icon: Zap,
+      title: "Dynamic Yield",
+      description: "Player performance influences DeFi yield in real-time"
     }
   ];
 
@@ -64,6 +82,11 @@ export default function Hero() {
     }
   };
 
+  const handleWatchDemo = () => {
+    console.log('Opening demo video...');
+    alert('Opening demo video... This would play the product demonstration.');
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Slider */}
@@ -86,41 +109,62 @@ export default function Hero() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            {slides[currentSlide].title}
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            {slides[currentSlide].subtitle}
-          </p>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-white/20">
+              <Cpu className="w-4 h-4 text-purple-400" />
+              <span className="text-white text-sm font-medium">Live MVP Platform</span>
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+              {slides[currentSlide].title}
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl">
+              {slides[currentSlide].subtitle}
+            </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <button 
-              onClick={handleStartPlaying}
-              className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center space-x-2 group"
-            >
-              <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span>Start Playing</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button 
-              onClick={handleExploreGames}
-              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all duration-200"
-            >
-              Explore Games
-            </button>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <button 
+                onClick={handleStartPlaying}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center space-x-2 group"
+              >
+                <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span>Try Live Platform</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button 
+                onClick={handleWatchDemo}
+                className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all duration-200"
+              >
+                Watch Demo
+              </button>
+            </div>
+
+            {/* Features */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                    <Icon className="w-6 h-6 text-purple-400 mb-2" />
+                    <h3 className="text-white font-semibold text-sm mb-1">{feature.title}</h3>
+                    <p className="text-gray-300 text-xs">{feature.description}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 gap-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
               <div className="flex items-center justify-center mb-2">
                 <Users className="w-6 h-6 text-blue-400" />
               </div>
               <div className="text-2xl font-bold text-white">{stats.totalPlayers.toLocaleString()}</div>
-              <div className="text-gray-300 text-sm">Total Players</div>
+              <div className="text-gray-300 text-sm">Early Test Users</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
               <div className="flex items-center justify-center mb-2">
@@ -134,14 +178,14 @@ export default function Hero() {
                 <Play className="w-6 h-6 text-purple-400" />
               </div>
               <div className="text-2xl font-bold text-white">{stats.activeGames}</div>
-              <div className="text-gray-300 text-sm">Active Games</div>
+              <div className="text-gray-300 text-sm">Integrated Games</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
               <div className="flex items-center justify-center mb-2">
                 <Trophy className="w-6 h-6 text-yellow-400" />
               </div>
-              <div className="text-2xl font-bold text-white">{stats.tournaments}</div>
-              <div className="text-gray-300 text-sm">Live Tournaments</div>
+              <div className="text-2xl font-bold text-white">6 min</div>
+              <div className="text-gray-300 text-sm">Avg Session Time</div>
             </div>
           </div>
         </div>
