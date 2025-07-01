@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Gamepad2, ArrowRight, Shield, Zap, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Gamepad2, ArrowRight, Shield, Zap, CheckCircle, AlertCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 
 export default function Signup() {
@@ -12,64 +12,56 @@ export default function Signup() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { connectWallet } = useUser();
+  const { signup, isLoading } = useUser();
 
-  const handleInputChange = (e: React.TargetEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     
     if (!acceptTerms) {
-      alert('Please accept the terms and conditions');
+      setError('Please accept the terms and conditions');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
 
-    setIsLoading(true);
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
 
-    // Simulate signup process
-    setTimeout(async () => {
-      if (formData.email && formData.password && formData.username) {
-        // Simulate successful signup and auto-login
-        await connectWallet();
-        navigate('/');
-      } else {
-        alert('Please fill in all fields');
-      }
-      setIsLoading(false);
-    }, 2000);
-  };
+    if (!formData.email || !formData.password || !formData.username) {
+      setError('Please fill in all fields');
+      return;
+    }
 
-  const handleWalletSignup = async () => {
-    setIsLoading(true);
     try {
-      await connectWallet();
+      await signup(formData.username, formData.email, formData.password);
       navigate('/');
-    } catch (error) {
-      console.error('Wallet signup failed:', error);
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      setError(error.message || 'Signup failed. Please try again.');
     }
   };
 
   const handleGoogleSignup = () => {
     console.log('Google signup - would integrate with Google OAuth');
-    // In production, integrate with Google OAuth
+    setError('Google signup coming soon!');
   };
 
   const handleDiscordSignup = () => {
     console.log('Discord signup - would integrate with Discord OAuth');
-    // In production, integrate with Discord OAuth
+    setError('Discord signup coming soon!');
   };
 
   return (
@@ -97,6 +89,13 @@ export default function Signup() {
 
         {/* Signup Form */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <span className="text-red-400 text-sm">{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Username Field */}
             <div>
@@ -241,37 +240,26 @@ export default function Signup() {
           </div>
 
           {/* Social Signup Options */}
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={handleWalletSignup}
-              disabled={isLoading}
-              className="w-full bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
+              onClick={handleGoogleSignup}
+              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
             >
-              <Shield className="w-5 h-5" />
-              <span>Connect Wallet</span>
+              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                <span className="text-gray-900 text-xs font-bold">G</span>
+              </div>
+              <span>Google</span>
             </button>
             
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handleGoogleSignup}
-                className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
-              >
-                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                  <span className="text-gray-900 text-xs font-bold">G</span>
-                </div>
-                <span>Google</span>
-              </button>
-              
-              <button
-                onClick={handleDiscordSignup}
-                className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
-              >
-                <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">D</span>
-                </div>
-                <span>Discord</span>
-              </button>
-            </div>
+            <button
+              onClick={handleDiscordSignup}
+              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
+            >
+              <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">D</span>
+              </div>
+              <span>Discord</span>
+            </button>
           </div>
 
           {/* Login Link */}

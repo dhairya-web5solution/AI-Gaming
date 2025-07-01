@@ -4,8 +4,8 @@ import { Menu, X, Wallet, User, Search, Globe, Gamepad2, LogOut, Settings, UserC
 import { useUser } from '../contexts/UserContext';
 
 interface HeaderProps {
-  onConnectWallet: () => void;
-  isWalletConnected: boolean;
+  onConnectWallet?: () => void;
+  isWalletConnected?: boolean;
   walletAddress?: string;
   isLoading?: boolean;
 }
@@ -16,7 +16,7 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const location = useLocation();
-  const { user, setUser } = useUser();
+  const { user, logout, connectWallet, disconnectWallet, isAuthenticated } = useUser();
 
   const languages = [
     { code: 'EN', name: 'English' },
@@ -36,7 +36,6 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate to games section with search
       const gamesSection = document.getElementById('games');
       if (gamesSection) {
         gamesSection.scrollIntoView({ behavior: 'smooth' });
@@ -51,10 +50,8 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
   };
 
   const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+    logout();
     setShowUserMenu(false);
-    console.log('User logged out');
   };
 
   const handleProfile = () => {
@@ -64,6 +61,25 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
 
   const handleSettings = () => {
     console.log('Opening user settings...');
+    setShowUserMenu(false);
+  };
+
+  const handleConnectWallet = async () => {
+    if (!isAuthenticated) {
+      alert('Please login first to connect your wallet');
+      return;
+    }
+    
+    try {
+      await connectWallet();
+    } catch (error: any) {
+      console.error('Wallet connection failed:', error);
+      alert(error.message || 'Failed to connect wallet');
+    }
+  };
+
+  const handleDisconnectWallet = () => {
+    disconnectWallet();
     setShowUserMenu(false);
   };
 
@@ -162,24 +178,58 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
             )}
 
             {/* Authentication */}
-            {isWalletConnected && user ? (
+            {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-2 hover:bg-gray-700 transition-colors"
                 >
-                  <Wallet className="w-4 h-4 text-green-400" />
-                  <span className="text-white text-sm">{formatAddress(walletAddress || '')}</span>
-                  <UserCircle className="w-4 h-4 text-gray-400" />
+                  <UserCircle className="w-5 h-5 text-purple-400" />
+                  <span className="text-white text-sm">{user.username}</span>
+                  {user.walletConnected && user.address && (
+                    <div className="flex items-center space-x-1">
+                      <Wallet className="w-4 h-4 text-green-400" />
+                      <span className="text-green-400 text-xs">{formatAddress(user.address)}</span>
+                    </div>
+                  )}
                 </button>
 
                 {/* User Dropdown Menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50">
                     <div className="px-4 py-2 border-b border-gray-700">
                       <p className="text-white font-semibold">{user.username}</p>
-                      <p className="text-gray-400 text-sm">Level {user.level}</p>
+                      <p className="text-gray-400 text-sm">{user.email}</p>
+                      <p className="text-purple-400 text-sm">Level {user.level} • {user.xp} XP</p>
                     </div>
+                    
+                    {/* Wallet Section */}
+                    <div className="px-4 py-2 border-b border-gray-700">
+                      {user.walletConnected ? (
+                        <div>
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Wallet className="w-4 h-4 text-green-400" />
+                            <span className="text-green-400 text-sm">Wallet Connected</span>
+                          </div>
+                          <p className="text-gray-300 text-xs mb-2">{user.address}</p>
+                          <button
+                            onClick={handleDisconnectWallet}
+                            className="text-red-400 hover:text-red-300 text-xs transition-colors"
+                          >
+                            Disconnect Wallet
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleConnectWallet}
+                          className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors text-sm"
+                        >
+                          <Wallet className="w-4 h-4" />
+                          <span>Connect Wallet</span>
+                        </button>
+                      )}
+                    </div>
+
                     <button
                       onClick={handleProfile}
                       className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center space-x-2"
@@ -214,14 +264,12 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                 >
                   Login
                 </Link>
-                <button
-                  onClick={onConnectWallet}
-                  disabled={isLoading}
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
+                <Link
+                  to="/signup"
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
                 >
-                  <Wallet className="w-4 h-4" />
-                  <span>{isLoading ? 'Connecting...' : 'Connect Wallet'}</span>
-                </button>
+                  Sign Up
+                </Link>
               </div>
             )}
 

@@ -1,54 +1,42 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, Gamepad2, ArrowRight, Shield, Zap } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Gamepad2, ArrowRight, Shield, Zap, AlertCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { connectWallet } = useUser();
+  const { login, isLoading } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setError('');
 
-    // Simulate login process
-    setTimeout(async () => {
-      if (email && password) {
-        // Simulate successful login
-        await connectWallet();
-        navigate('/');
-      } else {
-        alert('Please enter valid credentials');
-      }
-      setIsLoading(false);
-    }, 2000);
-  };
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
 
-  const handleWalletLogin = async () => {
-    setIsLoading(true);
     try {
-      await connectWallet();
+      await login(email, password);
       navigate('/');
-    } catch (error) {
-      console.error('Wallet login failed:', error);
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      setError(error.message || 'Login failed. Please try again.');
     }
   };
 
   const handleGoogleLogin = () => {
     console.log('Google login - would integrate with Google OAuth');
-    // In production, integrate with Google OAuth
+    setError('Google login coming soon!');
   };
 
   const handleDiscordLogin = () => {
     console.log('Discord login - would integrate with Discord OAuth');
-    // In production, integrate with Discord OAuth
+    setError('Discord login coming soon!');
   };
 
   return (
@@ -76,6 +64,13 @@ export default function Login() {
 
         {/* Login Form */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <span className="text-red-400 text-sm">{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>
@@ -166,37 +161,26 @@ export default function Login() {
           </div>
 
           {/* Social Login Options */}
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={handleWalletLogin}
-              disabled={isLoading}
-              className="w-full bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
+              onClick={handleGoogleLogin}
+              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
             >
-              <Shield className="w-5 h-5" />
-              <span>Connect Wallet</span>
+              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                <span className="text-gray-900 text-xs font-bold">G</span>
+              </div>
+              <span>Google</span>
             </button>
             
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handleGoogleLogin}
-                className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
-              >
-                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                  <span className="text-gray-900 text-xs font-bold">G</span>
-                </div>
-                <span>Google</span>
-              </button>
-              
-              <button
-                onClick={handleDiscordLogin}
-                className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
-              >
-                <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">D</span>
-                </div>
-                <span>Discord</span>
-              </button>
-            </div>
+            <button
+              onClick={handleDiscordLogin}
+              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
+            >
+              <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">D</span>
+              </div>
+              <span>Discord</span>
+            </button>
           </div>
 
           {/* Sign Up Link */}

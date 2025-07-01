@@ -2,8 +2,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 interface User {
   id: string;
-  address: string;
+  address?: string; // Optional - only set when wallet is connected
   username: string;
+  email: string;
   level: number;
   xp: number;
   isOnboarded: boolean;
@@ -21,16 +22,23 @@ interface User {
     winRate: number;
     rank: number;
   };
+  createdAt: Date;
+  lastLogin: Date;
 }
 
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (username: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
   connectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
   completeOnboarding: () => void;
   updateBalance: (token: string, amount: number) => void;
   updateStats: (stats: Partial<User['stats']>) => void;
   isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -57,8 +65,125 @@ declare global {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Mock user database (in production, this would be a real backend)
+  const getUsersFromStorage = () => {
+    const users = localStorage.getItem('registeredUsers');
+    return users ? JSON.parse(users) : [];
+  };
+
+  const saveUsersToStorage = (users: any[]) => {
+    localStorage.setItem('registeredUsers', JSON.stringify(users));
+  };
+
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const users = getUsersFromStorage();
+      const foundUser = users.find((u: any) => u.email === email && u.password === password);
+
+      if (foundUser) {
+        const { password: _, ...userWithoutPassword } = foundUser;
+        const loggedInUser = {
+          ...userWithoutPassword,
+          lastLogin: new Date(),
+          createdAt: new Date(userWithoutPassword.createdAt)
+        };
+        
+        setUser(loggedInUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('currentUser', JSON.stringify(loggedInUser));
+        localStorage.setItem('authToken', 'mock-jwt-token-' + Date.now());
+      } else {
+        throw new Error('Invalid email or password');
+      }
+    } catch (error: any) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signup = async (username: string, email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const users = getUsersFromStorage();
+      
+      // Check if user already exists
+      const existingUser = users.find((u: any) => u.email === email || u.username === username);
+      if (existingUser) {
+        throw new Error('User with this email or username already exists');
+      }
+
+      // Create new user
+      const newUser: User = {
+        id: 'user_' + Date.now(),
+        username,
+        email,
+        level: 1,
+        xp: 0,
+        isOnboarded: false,
+        walletConnected: false,
+        balances: {
+          AGT: 100, // Welcome bonus
+          NFT: 0,
+          TOUR: 0,
+          GOV: 0,
+          ETH: 0
+        },
+        stats: {
+          gamesPlayed: 0,
+          totalEarnings: 0,
+          winRate: 0,
+          rank: 999999
+        },
+        createdAt: new Date(),
+        lastLogin: new Date()
+      };
+
+      // Save to mock database
+      const userWithPassword = { ...newUser, password };
+      users.push(userWithPassword);
+      saveUsersToStorage(users);
+
+      // Set current user (without password)
+      setUser(newUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('currentUser', JSON.stringify(newUser));
+      localStorage.setItem('authToken', 'mock-jwt-token-' + Date.now());
+    } catch (error: any) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('walletAddress');
+    
+    // Disconnect wallet if connected
+    if (window.ethereum && window.ethereum.removeAllListeners) {
+      window.ethereum.removeAllListeners('accountsChanged');
+      window.ethereum.removeAllListeners('chainChanged');
+    }
+  };
 
   const connectWallet = async () => {
+    if (!user) {
+      throw new Error('Please login first to connect your wallet');
+    }
+
     setIsLoading(true);
     try {
       // Check if MetaMask is installed
@@ -79,57 +204,39 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
             console.log('Connected to MetaMask:', { address, chainId });
 
-            // Create user object with real wallet address
-            const mockUser: User = {
-              id: 'user_' + Date.now(),
+            // Update user with wallet info
+            const updatedUser = {
+              ...user,
               address: address,
-              username: 'Player' + Math.floor(Math.random() * 10000),
-              level: Math.floor(Math.random() * 5) + 1,
-              xp: Math.floor(Math.random() * 2000) + 500,
-              isOnboarded: Math.random() > 0.5,
               walletConnected: true,
               balances: {
-                AGT: Math.floor(Math.random() * 2000) + 500,
-                NFT: Math.floor(Math.random() * 100) + 20,
-                TOUR: Math.floor(Math.random() * 50) + 10,
-                GOV: Math.floor(Math.random() * 200) + 50,
-                ETH: Math.random() * 2 + 0.1
-              },
-              stats: {
-                gamesPlayed: Math.floor(Math.random() * 100) + 10,
-                totalEarnings: Math.floor(Math.random() * 1000) + 100,
-                winRate: Math.floor(Math.random() * 40) + 50,
-                rank: Math.floor(Math.random() * 10000) + 1000
+                ...user.balances,
+                ETH: Math.random() * 2 + 0.1 // Mock ETH balance
               }
             };
             
-            setUser(mockUser);
-            localStorage.setItem('user', JSON.stringify(mockUser));
+            setUser(updatedUser);
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             localStorage.setItem('walletAddress', address);
 
             // Listen for account changes
             window.ethereum.on('accountsChanged', (accounts: string[]) => {
               if (accounts.length === 0) {
                 // User disconnected wallet
-                setUser(null);
-                localStorage.removeItem('user');
-                localStorage.removeItem('walletAddress');
+                disconnectWallet();
               } else {
                 // User switched accounts
                 const newAddress = accounts[0];
-                if (mockUser) {
-                  const updatedUser = { ...mockUser, address: newAddress };
-                  setUser(updatedUser);
-                  localStorage.setItem('user', JSON.stringify(updatedUser));
-                  localStorage.setItem('walletAddress', newAddress);
-                }
+                const updatedUserWithNewAddress = { ...updatedUser, address: newAddress };
+                setUser(updatedUserWithNewAddress);
+                localStorage.setItem('currentUser', JSON.stringify(updatedUserWithNewAddress));
+                localStorage.setItem('walletAddress', newAddress);
               }
             });
 
             // Listen for chain changes
             window.ethereum.on('chainChanged', (chainId: string) => {
               console.log('Chain changed to:', chainId);
-              // Optionally reload the page or update UI
             });
 
           } else {
@@ -137,23 +244,44 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           }
         } catch (error: any) {
           if (error.code === 4001) {
-            // User rejected the request
             throw new Error('Please connect to MetaMask to continue');
           } else {
             throw new Error('Failed to connect to MetaMask: ' + error.message);
           }
         }
       } else {
-        // MetaMask is not installed
         alert('MetaMask is not installed. Please install MetaMask to connect your wallet.\n\nVisit: https://metamask.io/download/');
         window.open('https://metamask.io/download/', '_blank');
         throw new Error('MetaMask not installed');
       }
     } catch (error: any) {
       console.error('Wallet connection failed:', error);
-      alert(error.message || 'Failed to connect wallet');
+      throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const disconnectWallet = () => {
+    if (user) {
+      const updatedUser = {
+        ...user,
+        address: undefined,
+        walletConnected: false,
+        balances: {
+          ...user.balances,
+          ETH: 0
+        }
+      };
+      setUser(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.removeItem('walletAddress');
+    }
+
+    // Remove event listeners
+    if (window.ethereum && window.ethereum.removeAllListeners) {
+      window.ethereum.removeAllListeners('accountsChanged');
+      window.ethereum.removeAllListeners('chainChanged');
     }
   };
 
@@ -161,7 +289,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     if (user) {
       const updatedUser = { ...user, isOnboarded: true, xp: user.xp + 100 };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
     }
   };
 
@@ -175,7 +303,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         }
       };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
     }
   };
 
@@ -186,34 +314,40 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         stats: { ...user.stats, ...newStats }
       };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
     }
   };
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const savedAddress = localStorage.getItem('walletAddress');
+    const savedUser = localStorage.getItem('currentUser');
+    const authToken = localStorage.getItem('authToken');
     
-    if (savedUser && savedAddress) {
-      const parsedUser = JSON.parse(savedUser);
-      // Verify the wallet is still connected
-      if (typeof window.ethereum !== 'undefined') {
-        window.ethereum.request({ method: 'eth_accounts' })
-          .then((accounts: string[]) => {
-            if (accounts.length > 0 && accounts[0].toLowerCase() === savedAddress.toLowerCase()) {
-              setUser(parsedUser);
-            } else {
-              // Wallet disconnected, clear saved data
-              localStorage.removeItem('user');
-              localStorage.removeItem('walletAddress');
-            }
-          })
-          .catch(() => {
-            // Error checking accounts, clear saved data
-            localStorage.removeItem('user');
-            localStorage.removeItem('walletAddress');
-          });
+    if (savedUser && authToken) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        parsedUser.createdAt = new Date(parsedUser.createdAt);
+        parsedUser.lastLogin = new Date(parsedUser.lastLogin);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+
+        // If user had a wallet connected, verify it's still connected
+        if (parsedUser.walletConnected && typeof window.ethereum !== 'undefined') {
+          window.ethereum.request({ method: 'eth_accounts' })
+            .then((accounts: string[]) => {
+              if (accounts.length === 0 || !parsedUser.address) {
+                // Wallet disconnected, update user state
+                disconnectWallet();
+              }
+            })
+            .catch(() => {
+              // Error checking accounts, disconnect wallet
+              disconnectWallet();
+            });
+        }
+      } catch (error) {
+        console.error('Error loading saved user:', error);
+        logout();
       }
     }
   }, []);
@@ -222,11 +356,16 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     <UserContext.Provider value={{
       user,
       setUser,
+      login,
+      signup,
+      logout,
       connectWallet,
+      disconnectWallet,
       completeOnboarding,
       updateBalance,
       updateStats,
-      isLoading
+      isLoading,
+      isAuthenticated
     }}>
       {children}
     </UserContext.Provider>
