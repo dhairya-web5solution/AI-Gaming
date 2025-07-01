@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Target, Lightbulb, Award, Globe, Zap, Shield, Rocket, User, Code, TrendingUp, Activity, Database, Cpu, BarChart3, ExternalLink, Play, CheckCircle } from 'lucide-react';
+import { Users, Target, Lightbulb, Award, Globe, Zap, Shield, Rocket, User, Code, TrendingUp, Activity, Database, Cpu, BarChart3, ExternalLink, Play, CheckCircle, Trophy } from 'lucide-react';
 
 export default function About() {
   const teamMembers = [
