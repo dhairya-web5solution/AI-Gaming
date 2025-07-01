@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Vote, Users, Clock, CheckCircle, XCircle, TrendingUp, MessageSquare, Award } from 'lucide-react';
+import { Vote, Users, Clock, CheckCircle, XCircle, TrendingUp, MessageSquare, Award, Activity } from 'lucide-react';
+import BlockchainDashboard from '../components/BlockchainDashboard';
 
 interface Proposal {
   id: string;
@@ -17,6 +18,7 @@ interface Proposal {
 export default function Governance() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [userVotes, setUserVotes] = useState<{[key: string]: 'for' | 'against'}>({});
+  const [showBlockchainDashboard, setShowBlockchainDashboard] = useState(false);
 
   const proposals: Proposal[] = [
     {
@@ -153,220 +155,235 @@ export default function Governance() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-20">
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-r from-purple-900/50 to-blue-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Governance DAO
-          </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-            Shape the future of AI Gaming through decentralized governance. 
-            Vote on proposals, submit ideas, and help guide our platform's evolution.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={handleSubmitProposal}
-              className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
-            >
-              Submit Proposal
-            </button>
-            <button 
-              onClick={handleViewConstitution}
-              className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-all duration-200"
-            >
-              View Constitution
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-12 bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-400 mb-2">45</div>
-              <div className="text-gray-400">Total Proposals</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400 mb-2">12,500</div>
-              <div className="text-gray-400">Active Voters</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">89%</div>
-              <div className="text-gray-400">Participation Rate</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400 mb-2">5M</div>
-              <div className="text-gray-400">Tokens Staked</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
+    <>
+      <div className="min-h-screen bg-gray-900 pt-20">
+        {/* Hero Section */}
+        <section className="py-20 bg-gradient-to-r from-purple-900/50 to-blue-900/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              Governance DAO
+            </h1>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+              Shape the future of AI Gaming through decentralized governance. 
+              Vote on proposals, submit ideas, and help guide our platform's evolution.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={handleSubmitProposal}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
               >
-                {category.name} ({category.count})
+                Submit Proposal
               </button>
-            ))}
+              <button 
+                onClick={handleViewConstitution}
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-all duration-200"
+              >
+                View Constitution
+              </button>
+              <button
+                onClick={() => setShowBlockchainDashboard(true)}
+                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center space-x-2"
+              >
+                <Activity className="w-5 h-5" />
+                <span>Live Dashboard</span>
+              </button>
+            </div>
           </div>
+        </section>
 
-          {/* Proposals */}
-          <div className="space-y-6">
-            {filteredProposals.map(proposal => {
-              const StatusIcon = getStatusIcon(proposal.status);
-              const forPercentage = getVotePercentage(proposal.votesFor, proposal.totalVotes);
-              const againstPercentage = getVotePercentage(proposal.votesAgainst, proposal.totalVotes);
-              const userVote = userVotes[proposal.id];
+        {/* Stats */}
+        <section className="py-12 bg-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-400 mb-2">45</div>
+                <div className="text-gray-400">Total Proposals</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-2">12,500</div>
+                <div className="text-gray-400">Active Voters</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400 mb-2">89%</div>
+                <div className="text-gray-400">Participation Rate</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-yellow-400 mb-2">5M</div>
+                <div className="text-gray-400">Tokens Staked</div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-              return (
-                <div key={proposal.id} className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-bold text-white">{proposal.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 ${getStatusColor(proposal.status)}`}>
-                          <StatusIcon className="w-4 h-4" />
-                          <span>{proposal.status.toUpperCase()}</span>
-                        </span>
-                      </div>
-                      <p className="text-gray-400 mb-3">{proposal.description}</p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>Proposed by {proposal.proposer}</span>
-                        <span>•</span>
-                        <span>{formatTimeRemaining(proposal.endDate)}</span>
+        {/* Main Content */}
+        <section className="py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-2 mb-8">
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                    selectedCategory === category.id
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {category.name} ({category.count})
+                </button>
+              ))}
+            </div>
+
+            {/* Proposals */}
+            <div className="space-y-6">
+              {filteredProposals.map(proposal => {
+                const StatusIcon = getStatusIcon(proposal.status);
+                const forPercentage = getVotePercentage(proposal.votesFor, proposal.totalVotes);
+                const againstPercentage = getVotePercentage(proposal.votesAgainst, proposal.totalVotes);
+                const userVote = userVotes[proposal.id];
+
+                return (
+                  <div key={proposal.id} className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-xl font-bold text-white">{proposal.title}</h3>
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 ${getStatusColor(proposal.status)}`}>
+                            <StatusIcon className="w-4 h-4" />
+                            <span>{proposal.status.toUpperCase()}</span>
+                          </span>
+                        </div>
+                        <p className="text-gray-400 mb-3">{proposal.description}</p>
+                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <span>Proposed by {proposal.proposer}</span>
+                          <span>•</span>
+                          <span>{formatTimeRemaining(proposal.endDate)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Voting Results */}
-                  {proposal.totalVotes > 0 && (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400">Voting Results</span>
-                        <span className="text-gray-400">{proposal.totalVotes.toLocaleString()} votes</span>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-400" />
-                            <span className="text-green-400">For</span>
-                          </div>
-                          <span className="text-white font-semibold">{forPercentage}% ({proposal.votesFor.toLocaleString()})</span>
-                        </div>
-                        <div className="bg-gray-700 rounded-full h-2">
-                          <div
-                            className="bg-green-400 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${forPercentage}%` }}
-                          />
+                    {/* Voting Results */}
+                    {proposal.totalVotes > 0 && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-gray-400">Voting Results</span>
+                          <span className="text-gray-400">{proposal.totalVotes.toLocaleString()} votes</span>
                         </div>
                         
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <XCircle className="w-4 h-4 text-red-400" />
-                            <span className="text-red-400">Against</span>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <CheckCircle className="w-4 h-4 text-green-400" />
+                              <span className="text-green-400">For</span>
+                            </div>
+                            <span className="text-white font-semibold">{forPercentage}% ({proposal.votesFor.toLocaleString()})</span>
                           </div>
-                          <span className="text-white font-semibold">{againstPercentage}% ({proposal.votesAgainst.toLocaleString()})</span>
-                        </div>
-                        <div className="bg-gray-700 rounded-full h-2">
-                          <div
-                            className="bg-red-400 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${againstPercentage}%` }}
-                          />
+                          <div className="bg-gray-700 rounded-full h-2">
+                            <div
+                              className="bg-green-400 h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${forPercentage}%` }}
+                            />
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <XCircle className="w-4 h-4 text-red-400" />
+                              <span className="text-red-400">Against</span>
+                            </div>
+                            <span className="text-white font-semibold">{againstPercentage}% ({proposal.votesAgainst.toLocaleString()})</span>
+                          </div>
+                          <div className="bg-gray-700 rounded-full h-2">
+                            <div
+                              className="bg-red-400 h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${againstPercentage}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Voting Buttons */}
-                  {proposal.status === 'active' && (
-                    <div className="flex items-center space-x-4">
-                      <button
-                        onClick={() => handleVote(proposal.id, 'for')}
-                        disabled={!!userVote}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
-                          userVote === 'for'
-                            ? 'bg-green-500 text-white'
-                            : userVote
-                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                            : 'bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white border border-green-500'
-                        }`}
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        <span>{userVote === 'for' ? 'Voted For' : 'Vote For'}</span>
-                      </button>
-                      <button
-                        onClick={() => handleVote(proposal.id, 'against')}
-                        disabled={!!userVote}
-                        className={`flex-1 py-3 rounded-lg font-semib old transition-all duration-200 flex items-center justify-center space-x-2 ${
-                          userVote === 'against'
-                            ? 'bg-red-500 text-white'
-                            : userVote
-                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                            : 'bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500'
-                        }`}
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span>{userVote === 'against' ? 'Voted Against' : 'Vote Against'}</span>
-                      </button>
-                      <button 
-                        onClick={() => handleDiscuss(proposal.id)}
-                        className="px-6 py-3 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        <span>Discuss</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    {/* Voting Buttons */}
+                    {proposal.status === 'active' && (
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={() => handleVote(proposal.id, 'for')}
+                          disabled={!!userVote}
+                          className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                            userVote === 'for'
+                              ? 'bg-green-500 text-white'
+                              : userVote
+                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                              : 'bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white border border-green-500'
+                          }`}
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span>{userVote === 'for' ? 'Voted For' : 'Vote For'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleVote(proposal.id, 'against')}
+                          disabled={!!userVote}
+                          className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                            userVote === 'against'
+                              ? 'bg-red-500 text-white'
+                              : userVote
+                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                              : 'bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500'
+                          }`}
+                        >
+                          <XCircle className="w-4 h-4" />
+                          <span>{userVote === 'against' ? 'Voted Against' : 'Vote Against'}</span>
+                        </button>
+                        <button 
+                          onClick={() => handleDiscuss(proposal.id)}
+                          className="px-6 py-3 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          <span>Discuss</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* How to Participate */}
-      <section className="py-20 bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">How to Participate</h2>
-            <p className="text-xl text-gray-400">Get involved in shaping the future of AI Gaming</p>
+        {/* How to Participate */}
+        <section className="py-20 bg-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-white mb-4">How to Participate</h2>
+              <p className="text-xl text-gray-400">Get involved in shaping the future of AI Gaming</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-center">
+                <Award className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-3">Stake Tokens</h3>
+                <p className="text-gray-400">Stake your tokens to gain voting power and participate in governance decisions.</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-center">
+                <Vote className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-3">Vote on Proposals</h3>
+                <p className="text-gray-400">Cast your vote on active proposals to influence platform development.</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-center">
+                <TrendingUp className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-3">Submit Ideas</h3>
+                <p className="text-gray-400">Propose new features, games, or changes to improve the platform.</p>
+              </div>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-center">
-              <Award className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-3">Stake Tokens</h3>
-              <p className="text-gray-400">Stake your tokens to gain voting power and participate in governance decisions.</p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-center">
-              <Vote className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-3">Vote on Proposals</h3>
-              <p className="text-gray-400">Cast your vote on active proposals to influence platform development.</p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-center">
-              <TrendingUp className="w-12 h-12 text-green-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-3">Submit Ideas</h3>
-              <p className="text-gray-400">Propose new features, games, or changes to improve the platform.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+
+      {/* Blockchain Dashboard Modal */}
+      <BlockchainDashboard 
+        isOpen={showBlockchainDashboard}
+        onClose={() => setShowBlockchainDashboard(false)}
+      />
+    </>
   );
 }
