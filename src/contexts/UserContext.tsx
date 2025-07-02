@@ -76,11 +76,8 @@ declare global {
   }
 }
 
-// API Configuration
-const API_BASE_URL = import.meta.env.MODE === 'production' 
-  ? 'https://your-api-domain.com/api' 
-  : 'http://localhost:8080/api';
-
+// API Configuration - Always use mock API for now
+const API_BASE_URL = 'mock-api'; // Force mock API usage
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com';
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
@@ -122,30 +119,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     initializeGoogleAuth();
   }, []);
 
-  // API Helper Functions
-  const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('authToken');
-    
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-    };
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(error.message || `HTTP ${response.status}`);
-    }
-    
-    return response.json();
-  };
-
-  // Mock API calls for development (replace with real API in production)
+  // Mock API calls for development
   const mockApiCall = async (endpoint: string, options: RequestInit = {}) => {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
@@ -283,13 +257,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
-  // Use mock API in development, real API in production
-  const makeApiCall = import.meta.env.MODE === 'production' ? apiCall : mockApiCall;
-
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await makeApiCall('/auth/login', {
+      const response = await mockApiCall('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
@@ -315,7 +286,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const signup = async (username: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await makeApiCall('/auth/register', {
+      const response = await mockApiCall('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ username, email, password }),
       });
@@ -353,7 +324,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         email_verified: payload.email_verified
       };
 
-      const authResponse = await makeApiCall('/auth/google', {
+      const authResponse = await mockApiCall('/auth/google', {
         method: 'POST',
         body: JSON.stringify(googleUserData),
       });
@@ -418,7 +389,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const refreshToken = async () => {
     try {
-      const response = await makeApiCall('/auth/refresh', {
+      const response = await mockApiCall('/auth/refresh', {
         method: 'POST',
       });
       
@@ -599,7 +570,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       if (savedUser && authToken) {
         try {
           // Verify token is still valid
-          const response = await makeApiCall('/auth/me');
+          const response = await mockApiCall('/auth/me');
           const userData = {
             ...response.user,
             createdAt: new Date(response.user.createdAt),
