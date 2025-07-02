@@ -194,17 +194,11 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                 >
                   <UserCircle className="w-5 h-5 text-purple-400" />
                   <span className="text-white text-sm">{user.username}</span>
-                  {user.walletConnected && user.address && (
-                    <div className="flex items-center space-x-1">
-                      <Wallet className="w-4 h-4 text-green-400" />
-                      <span className="text-green-400 text-xs">{formatAddress(user.address)}</span>
-                    </div>
-                  )}
                 </button>
 
                 {/* User Dropdown Menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50">
                     <div className="px-4 py-2 border-b border-gray-700">
                       <p className="text-white font-semibold">{user.username}</p>
                       <p className="text-gray-400 text-sm">{user.email}</p>
@@ -219,7 +213,10 @@ export default function Header({ onConnectWallet, isWalletConnected, walletAddre
                             <Wallet className="w-4 h-4 text-green-400" />
                             <span className="text-green-400 text-sm">Wallet Connected</span>
                           </div>
-                          <p className="text-gray-300 text-xs mb-1">{user.address}</p>
+                          <div className="bg-gray-700 rounded p-2 mb-2">
+                            <p className="text-gray-300 text-xs mb-1 font-medium">Address:</p>
+                            <p className="text-white text-xs font-mono break-all leading-relaxed">{user.address}</p>
+                          </div>
                           {user.balances.ETH > 0 && (
                             <p className="text-gray-400 text-xs mb-2">Balance: {user.balances.ETH} ETH</p>
                           )}
