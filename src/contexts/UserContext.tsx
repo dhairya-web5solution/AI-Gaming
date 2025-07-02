@@ -85,6 +85,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [googleAvailable, setGoogleAvailable] = useState(false);
+  const [googleInitialized, setGoogleInitialized] = useState(false);
 
   // Initialize Google OAuth
   useEffect(() => {
@@ -94,6 +95,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         if (GOOGLE_CLIENT_ID === 'demo-client-id' || !GOOGLE_CLIENT_ID.includes('.apps.googleusercontent.com')) {
           console.warn('Demo mode: Google OAuth not configured with valid client ID');
           setGoogleAvailable(false);
+          setGoogleInitialized(true);
           return;
         }
 
@@ -110,9 +112,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             script.onerror = () => {
               console.error('Failed to load Google Identity Services');
               setGoogleAvailable(false);
+              setGoogleInitialized(true);
               reject(new Error('Failed to load Google script'));
             };
-            setTimeout(() => reject(new Error('Google script load timeout')), 10000);
+            setTimeout(() => {
+              setGoogleAvailable(false);
+              setGoogleInitialized(true);
+              reject(new Error('Google script load timeout'));
+            }, 10000);
           });
         }
 
@@ -136,6 +143,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Failed to initialize Google Auth:', error);
         setGoogleAvailable(false);
+      } finally {
+        setGoogleInitialized(true);
       }
     };
 
@@ -377,11 +386,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const loginWithGoogle = async () => {
     try {
+      setIsLoading(true);
+      
+      if (!googleInitialized) {
+        throw new Error('Google authentication is still initializing. Please wait a moment and try again.');
+      }
+
       if (!googleAvailable) {
-        // Fallback for demo mode
+        // Demo mode fallback
         const demoGoogleUser = {
           googleId: 'demo-google-id-' + Date.now(),
-          email: 'demo@google.com',
+          email: 'demo.user@gmail.com',
           name: 'Demo Google User',
           picture: '',
           email_verified: true
@@ -407,7 +422,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
 
       if (!window.google || !window.google.accounts) {
-        throw new Error('Google Sign-In not available. Please try again later.');
+        throw new Error('Google Sign-In is not available. Please check your internet connection and try again.');
       }
       
       // Try to trigger Google Sign-In popup
@@ -419,7 +434,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       });
     } catch (error: any) {
       console.error('Google login failed:', error);
-      throw new Error('Google Sign-In failed. Please try again.');
+      throw new Error(error.message || 'Google Sign-In failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -437,35 +454,50 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       display: flex;
       align-items: center;
       justify-content: center;
+      backdrop-filter: blur(4px);
     `;
 
     // Create modal
     const modal = document.createElement('div');
     modal.style.cssText = `
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      background: #1f2937;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       max-width: 400px;
       width: 90%;
       text-align: center;
       position: relative;
+      border: 1px solid #374151;
     `;
 
     // Add title
     const title = document.createElement('h3');
-    title.textContent = 'Sign in with Google';
+    title.textContent = 'Continue with Google';
     title.style.cssText = `
-      margin: 0 0 20px 0;
-      color: #1f2937;
+      margin: 0 0 24px 0;
+      color: #ffffff;
       font-size: 24px;
       font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+
+    // Add subtitle
+    const subtitle = document.createElement('p');
+    subtitle.textContent = 'Sign in to your account or create a new one';
+    subtitle.style.cssText = `
+      margin: 0 0 32px 0;
+      color: #9ca3af;
+      font-size: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
 
     // Create button container
     const buttonContainer = document.createElement('div');
     buttonContainer.style.cssText = `
-      margin: 20px 0;
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
     `;
 
     // Add close button
@@ -473,19 +505,38 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     closeButton.innerHTML = '×';
     closeButton.style.cssText = `
       position: absolute;
-      top: 10px;
-      right: 15px;
+      top: 16px;
+      right: 20px;
       background: none;
       border: none;
-      font-size: 24px;
+      font-size: 28px;
       cursor: pointer;
-      color: #6b7280;
-      padding: 5px;
+      color: #9ca3af;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     `;
-    closeButton.onclick = () => document.body.removeChild(overlay);
+    closeButton.onmouseover = () => {
+      closeButton.style.backgroundColor = '#374151';
+      closeButton.style.color = '#ffffff';
+    };
+    closeButton.onmouseout = () => {
+      closeButton.style.backgroundColor = 'transparent';
+      closeButton.style.color = '#9ca3af';
+    };
+    closeButton.onclick = () => {
+      document.body.removeChild(overlay);
+      setIsLoading(false);
+    };
 
     modal.appendChild(closeButton);
     modal.appendChild(title);
+    modal.appendChild(subtitle);
     modal.appendChild(buttonContainer);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
@@ -493,11 +544,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     // Render Google button
     if (window.google && window.google.accounts) {
       window.google.accounts.id.renderButton(buttonContainer, {
-        theme: 'outline',
+        theme: 'filled_blue',
         size: 'large',
         text: 'continue_with',
         shape: 'rectangular',
-        width: 300
+        width: 280,
+        logo_alignment: 'left'
       });
     }
 
@@ -505,6 +557,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     overlay.onclick = (e) => {
       if (e.target === overlay) {
         document.body.removeChild(overlay);
+        setIsLoading(false);
       }
     };
   };
