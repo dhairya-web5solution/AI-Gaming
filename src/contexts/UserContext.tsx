@@ -51,6 +51,7 @@ interface UserContextType {
   updateStats: (stats: Partial<User['stats']>) => void;
   isLoading: boolean;
   isAuthenticated: boolean;
+  googleAvailable: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -76,14 +77,70 @@ declare global {
   }
 }
 
-// Google Client ID - you should replace this with your actual Google Client ID
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com';
+// For demo purposes - in production, replace with your actual Google Client ID
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'demo-client-id';
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [googleInitialized, setGoogleInitialized] = useState(false);
+  const [googleAvailable, setGoogleAvailable] = useState(false);
+
+  // Initialize Google OAuth
+  useEffect(() => {
+    const initializeGoogleAuth = async () => {
+      try {
+        // Check if we have a valid Google Client ID
+        if (GOOGLE_CLIENT_ID === 'demo-client-id' || !GOOGLE_CLIENT_ID.includes('.apps.googleusercontent.com')) {
+          console.warn('Demo mode: Google OAuth not configured with valid client ID');
+          setGoogleAvailable(false);
+          return;
+        }
+
+        // Load Google Identity Services script
+        if (!window.google) {
+          const script = document.createElement('script');
+          script.src = 'https://accounts.google.com/gsi/client';
+          script.async = true;
+          script.defer = true;
+          document.head.appendChild(script);
+          
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = () => {
+              console.error('Failed to load Google Identity Services');
+              setGoogleAvailable(false);
+              reject(new Error('Failed to load Google script'));
+            };
+            setTimeout(() => reject(new Error('Google script load timeout')), 10000);
+          });
+        }
+
+        // Wait for the script to fully initialize
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Initialize Google OAuth
+        if (window.google && window.google.accounts) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCallback,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+          setGoogleAvailable(true);
+          console.log('Google OAuth initialized successfully');
+        } else {
+          console.error('Google accounts API not available');
+          setGoogleAvailable(false);
+        }
+      } catch (error) {
+        console.error('Failed to initialize Google Auth:', error);
+        setGoogleAvailable(false);
+      }
+    };
+
+    initializeGoogleAuth();
+  }, []);
 
   // Mock API calls for development
   const mockApiCall = async (endpoint: string, options: RequestInit = {}) => {
@@ -225,48 +282,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
-  // Initialize Google OAuth
-  useEffect(() => {
-    const initializeGoogleAuth = async () => {
-      try {
-        // Load Google Identity Services script
-        if (!window.google) {
-          const script = document.createElement('script');
-          script.src = 'https://accounts.google.com/gsi/client';
-          script.async = true;
-          script.defer = true;
-          document.head.appendChild(script);
-          
-          await new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = reject;
-          });
-        }
-
-        // Wait a bit for the script to fully load
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Initialize Google OAuth
-        if (window.google && window.google.accounts) {
-          window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleGoogleCallback,
-            auto_select: false,
-            cancel_on_tap_outside: true,
-          });
-          setGoogleInitialized(true);
-          console.log('Google OAuth initialized successfully');
-        } else {
-          console.error('Google accounts API not available');
-        }
-      } catch (error) {
-        console.error('Failed to initialize Google Auth:', error);
-      }
-    };
-
-    initializeGoogleAuth();
-  }, []);
-
   const handleGoogleCallback = async (response: any) => {
     try {
       setIsLoading(true);
@@ -362,51 +377,136 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const loginWithGoogle = async () => {
     try {
-      if (!googleInitialized || !window.google || !window.google.accounts) {
-        throw new Error('Google Sign-In not initialized. Please try again in a moment.');
+      if (!googleAvailable) {
+        // Fallback for demo mode
+        const demoGoogleUser = {
+          googleId: 'demo-google-id-' + Date.now(),
+          email: 'demo@google.com',
+          name: 'Demo Google User',
+          picture: '',
+          email_verified: true
+        };
+
+        const authResponse = await mockApiCall('/auth/google', {
+          method: 'POST',
+          body: JSON.stringify(demoGoogleUser),
+        });
+
+        const userData = {
+          ...authResponse.user,
+          createdAt: new Date(authResponse.user.createdAt),
+          lastLogin: new Date()
+        };
+
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem('authToken', authResponse.token);
+        localStorage.setItem('refreshToken', authResponse.refreshToken);
+        return;
+      }
+
+      if (!window.google || !window.google.accounts) {
+        throw new Error('Google Sign-In not available. Please try again later.');
       }
       
-      // Trigger Google Sign-In popup
+      // Try to trigger Google Sign-In popup
       window.google.accounts.id.prompt((notification: any) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
           // Fallback to renderButton if prompt doesn't work
-          const buttonContainer = document.createElement('div');
-          buttonContainer.style.position = 'fixed';
-          buttonContainer.style.top = '50%';
-          buttonContainer.style.left = '50%';
-          buttonContainer.style.transform = 'translate(-50%, -50%)';
-          buttonContainer.style.zIndex = '10000';
-          buttonContainer.style.backgroundColor = 'white';
-          buttonContainer.style.padding = '20px';
-          buttonContainer.style.borderRadius = '8px';
-          buttonContainer.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-          document.body.appendChild(buttonContainer);
-
-          window.google.accounts.id.renderButton(buttonContainer, {
-            theme: 'outline',
-            size: 'large',
-            text: 'continue_with',
-            shape: 'rectangular',
-          });
-
-          // Add close button
-          const closeButton = document.createElement('button');
-          closeButton.innerHTML = '×';
-          closeButton.style.position = 'absolute';
-          closeButton.style.top = '5px';
-          closeButton.style.right = '10px';
-          closeButton.style.background = 'none';
-          closeButton.style.border = 'none';
-          closeButton.style.fontSize = '20px';
-          closeButton.style.cursor = 'pointer';
-          closeButton.onclick = () => document.body.removeChild(buttonContainer);
-          buttonContainer.appendChild(closeButton);
+          showGoogleSignInButton();
         }
       });
     } catch (error: any) {
       console.error('Google login failed:', error);
       throw new Error('Google Sign-In failed. Please try again.');
     }
+  };
+
+  const showGoogleSignInButton = () => {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+    `;
+
+    // Add title
+    const title = document.createElement('h3');
+    title.textContent = 'Sign in with Google';
+    title.style.cssText = `
+      margin: 0 0 20px 0;
+      color: #1f2937;
+      font-size: 24px;
+      font-weight: 600;
+    `;
+
+    // Create button container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+      margin: 20px 0;
+    `;
+
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '×';
+    closeButton.style.cssText = `
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 5px;
+    `;
+    closeButton.onclick = () => document.body.removeChild(overlay);
+
+    modal.appendChild(closeButton);
+    modal.appendChild(title);
+    modal.appendChild(buttonContainer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Render Google button
+    if (window.google && window.google.accounts) {
+      window.google.accounts.id.renderButton(buttonContainer, {
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        shape: 'rectangular',
+        width: 300
+      });
+    }
+
+    // Close on overlay click
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+      }
+    };
   };
 
   const signupWithGoogle = async () => {
@@ -689,7 +789,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       updateBalance,
       updateStats,
       isLoading,
-      isAuthenticated
+      isAuthenticated,
+      googleAvailable
     }}>
       {children}
     </UserContext.Provider>
