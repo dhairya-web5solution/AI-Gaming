@@ -16,6 +16,8 @@ interface User {
   github?: string;
   phone?: string;
   avatar?: string;
+  authProvider?: 'email' | 'google' | 'discord';
+  googleId?: string;
   balances: {
     AGT: number;
     NFT: number;
@@ -37,7 +39,9 @@ interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   signup: (username: string, email: string, password: string) => Promise<void>;
+  signupWithGoogle: () => Promise<void>;
   logout: () => void;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
@@ -63,52 +67,244 @@ interface UserProviderProps {
   children: ReactNode;
 }
 
-// Declare ethereum type for TypeScript
+// Declare ethereum and google types for TypeScript
 declare global {
   interface Window {
     ethereum?: any;
+    google?: any;
+    gapi?: any;
   }
 }
+
+// API Configuration
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-api-domain.com/api' 
+  : 'http://localhost:8080/api';
+
+const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com';
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Mock user database (in production, this would be a real backend)
-  const getUsersFromStorage = () => {
-    const users = localStorage.getItem('registeredUsers');
-    return users ? JSON.parse(users) : [];
+  // Initialize Google OAuth
+  useEffect(() => {
+    const initializeGoogleAuth = async () => {
+      try {
+        // Load Google Identity Services
+        if (!window.google) {
+          const script = document.createElement('script');
+          script.src = 'https://accounts.google.com/gsi/client';
+          script.async = true;
+          script.defer = true;
+          document.head.appendChild(script);
+          
+          await new Promise((resolve) => {
+            script.onload = resolve;
+          });
+        }
+
+        // Initialize Google OAuth
+        if (window.google) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCallback,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to initialize Google Auth:', error);
+      }
+    };
+
+    initializeGoogleAuth();
+  }, []);
+
+  // API Helper Functions
+  const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+    const token = localStorage.getItem('authToken');
+    
+    const config: RequestInit = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
+      },
+    };
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Network error' }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+    
+    return response.json();
   };
 
-  const saveUsersToStorage = (users: any[]) => {
-    localStorage.setItem('registeredUsers', JSON.stringify(users));
+  // Mock API calls for development (replace with real API in production)
+  const mockApiCall = async (endpoint: string, options: RequestInit = {}) => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    
+    const method = options.method || 'GET';
+    const body = options.body ? JSON.parse(options.body as string) : null;
+
+    // Mock user database
+    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    
+    switch (endpoint) {
+      case '/auth/login':
+        const loginUser = users.find((u: any) => 
+          u.email === body.email && u.password === body.password
+        );
+        if (!loginUser) {
+          throw new Error('Invalid email or password');
+        }
+        const { password: _, ...userWithoutPassword } = loginUser;
+        return {
+          user: userWithoutPassword,
+          token: `mock-jwt-token-${Date.now()}`,
+          refreshToken: `mock-refresh-token-${Date.now()}`
+        };
+
+      case '/auth/register':
+        const existingUser = users.find((u: any) => 
+          u.email === body.email || u.username === body.username
+        );
+        if (existingUser) {
+          throw new Error('User with this email or username already exists');
+        }
+        
+        const newUser = {
+          id: `user_${Date.now()}`,
+          username: body.username,
+          email: body.email,
+          password: body.password,
+          authProvider: 'email',
+          level: 1,
+          xp: 0,
+          isOnboarded: false,
+          walletConnected: false,
+          bio: '',
+          location: '',
+          website: '',
+          twitter: '',
+          github: '',
+          phone: '',
+          avatar: '',
+          balances: { AGT: 100, NFT: 0, TOUR: 0, GOV: 0, ETH: 0 },
+          stats: { gamesPlayed: 0, totalEarnings: 0, winRate: 0, rank: 999999 },
+          createdAt: new Date(),
+          lastLogin: new Date()
+        };
+        
+        users.push(newUser);
+        localStorage.setItem('registeredUsers', JSON.stringify(users));
+        
+        const { password: __, ...newUserWithoutPassword } = newUser;
+        return {
+          user: newUserWithoutPassword,
+          token: `mock-jwt-token-${Date.now()}`,
+          refreshToken: `mock-refresh-token-${Date.now()}`
+        };
+
+      case '/auth/google':
+        const googleUser = users.find((u: any) => u.googleId === body.googleId);
+        if (googleUser) {
+          // Login existing Google user
+          const { password: ___, ...existingGoogleUser } = googleUser;
+          return {
+            user: existingGoogleUser,
+            token: `mock-jwt-token-${Date.now()}`,
+            refreshToken: `mock-refresh-token-${Date.now()}`
+          };
+        } else {
+          // Register new Google user
+          const newGoogleUser = {
+            id: `user_${Date.now()}`,
+            username: body.name.replace(/\s+/g, '').toLowerCase(),
+            email: body.email,
+            googleId: body.googleId,
+            authProvider: 'google',
+            avatar: body.picture,
+            level: 1,
+            xp: 0,
+            isOnboarded: false,
+            walletConnected: false,
+            bio: '',
+            location: '',
+            website: '',
+            twitter: '',
+            github: '',
+            phone: '',
+            balances: { AGT: 100, NFT: 0, TOUR: 0, GOV: 0, ETH: 0 },
+            stats: { gamesPlayed: 0, totalEarnings: 0, winRate: 0, rank: 999999 },
+            createdAt: new Date(),
+            lastLogin: new Date()
+          };
+          
+          users.push(newGoogleUser);
+          localStorage.setItem('registeredUsers', JSON.stringify(users));
+          
+          return {
+            user: newGoogleUser,
+            token: `mock-jwt-token-${Date.now()}`,
+            refreshToken: `mock-refresh-token-${Date.now()}`
+          };
+        }
+
+      case '/auth/refresh':
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No refresh token');
+        }
+        return {
+          token: `mock-jwt-token-${Date.now()}`,
+          refreshToken: `mock-refresh-token-${Date.now()}`
+        };
+
+      case '/auth/me':
+        const currentToken = localStorage.getItem('authToken');
+        if (!currentToken) {
+          throw new Error('Not authenticated');
+        }
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if (!currentUser) {
+          throw new Error('User not found');
+        }
+        return { user: currentUser };
+
+      default:
+        throw new Error('Endpoint not found');
+    }
   };
+
+  // Use mock API in development, real API in production
+  const makeApiCall = process.env.NODE_ENV === 'production' ? apiCall : mockApiCall;
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await makeApiCall('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
 
-      const users = getUsersFromStorage();
-      const foundUser = users.find((u: any) => u.email === email && u.password === password);
+      const userData = {
+        ...response.user,
+        createdAt: new Date(response.user.createdAt),
+        lastLogin: new Date()
+      };
 
-      if (foundUser) {
-        const { password: _, ...userWithoutPassword } = foundUser;
-        const loggedInUser = {
-          ...userWithoutPassword,
-          lastLogin: new Date(),
-          createdAt: new Date(userWithoutPassword.createdAt)
-        };
-        
-        setUser(loggedInUser);
-        setIsAuthenticated(true);
-        localStorage.setItem('currentUser', JSON.stringify(loggedInUser));
-        localStorage.setItem('authToken', 'mock-jwt-token-' + Date.now());
-      } else {
-        throw new Error('Invalid email or password');
-      }
+      setUser(userData);
+      setIsAuthenticated(true);
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('refreshToken', response.refreshToken);
     } catch (error: any) {
       throw error;
     } finally {
@@ -119,60 +315,22 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const signup = async (username: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await makeApiCall('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ username, email, password }),
+      });
 
-      const users = getUsersFromStorage();
-      
-      // Check if user already exists
-      const existingUser = users.find((u: any) => u.email === email || u.username === username);
-      if (existingUser) {
-        throw new Error('User with this email or username already exists');
-      }
-
-      // Create new user
-      const newUser: User = {
-        id: 'user_' + Date.now(),
-        username,
-        email,
-        level: 1,
-        xp: 0,
-        isOnboarded: false,
-        walletConnected: false,
-        bio: '',
-        location: '',
-        website: '',
-        twitter: '',
-        github: '',
-        phone: '',
-        avatar: '',
-        balances: {
-          AGT: 100, // Welcome bonus
-          NFT: 0,
-          TOUR: 0,
-          GOV: 0,
-          ETH: 0
-        },
-        stats: {
-          gamesPlayed: 0,
-          totalEarnings: 0,
-          winRate: 0,
-          rank: 999999
-        },
-        createdAt: new Date(),
+      const userData = {
+        ...response.user,
+        createdAt: new Date(response.user.createdAt),
         lastLogin: new Date()
       };
 
-      // Save to mock database
-      const userWithPassword = { ...newUser, password };
-      users.push(userWithPassword);
-      saveUsersToStorage(users);
-
-      // Set current user (without password)
-      setUser(newUser);
+      setUser(userData);
       setIsAuthenticated(true);
-      localStorage.setItem('currentUser', JSON.stringify(newUser));
-      localStorage.setItem('authToken', 'mock-jwt-token-' + Date.now());
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('refreshToken', response.refreshToken);
     } catch (error: any) {
       throw error;
     } finally {
@@ -180,17 +338,96 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
+  const handleGoogleCallback = async (response: any) => {
+    try {
+      setIsLoading(true);
+      
+      // Decode the JWT token to get user info
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      
+      const googleUserData = {
+        googleId: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+        email_verified: payload.email_verified
+      };
+
+      const authResponse = await makeApiCall('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify(googleUserData),
+      });
+
+      const userData = {
+        ...authResponse.user,
+        createdAt: new Date(authResponse.user.createdAt),
+        lastLogin: new Date()
+      };
+
+      setUser(userData);
+      setIsAuthenticated(true);
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      localStorage.setItem('authToken', authResponse.token);
+      localStorage.setItem('refreshToken', authResponse.refreshToken);
+    } catch (error: any) {
+      console.error('Google login failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      if (!window.google) {
+        throw new Error('Google Sign-In not loaded');
+      }
+      
+      // Trigger Google Sign-In popup
+      window.google.accounts.id.prompt();
+    } catch (error: any) {
+      console.error('Google login failed:', error);
+      throw new Error('Google Sign-In failed. Please try again.');
+    }
+  };
+
+  const signupWithGoogle = async () => {
+    // Same as login for Google OAuth (registration happens automatically)
+    return loginWithGoogle();
+  };
+
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('walletAddress');
     
     // Disconnect wallet if connected
     if (window.ethereum && window.ethereum.removeAllListeners) {
       window.ethereum.removeAllListeners('accountsChanged');
       window.ethereum.removeAllListeners('chainChanged');
+    }
+
+    // Sign out from Google
+    if (window.google) {
+      window.google.accounts.id.disableAutoSelect();
+    }
+  };
+
+  const refreshToken = async () => {
+    try {
+      const response = await makeApiCall('/auth/refresh', {
+        method: 'POST',
+      });
+      
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('refreshToken', response.refreshToken);
+      return response.token;
+    } catch (error) {
+      logout();
+      throw error;
     }
   };
 
@@ -199,19 +436,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      // In production, this would be a real API call
       const updatedUser = { ...user, ...profileData };
       setUser(updatedUser);
       localStorage.setItem('currentUser', JSON.stringify(updatedUser));
 
       // Update in mock database
-      const users = getUsersFromStorage();
+      const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
       const userIndex = users.findIndex((u: any) => u.id === user.id);
       if (userIndex !== -1) {
         users[userIndex] = { ...users[userIndex], ...profileData };
-        saveUsersToStorage(users);
+        localStorage.setItem('registeredUsers', JSON.stringify(users));
       }
     } catch (error) {
       throw error;
@@ -227,10 +462,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
     setIsLoading(true);
     try {
-      // Check if MetaMask is installed
       if (typeof window.ethereum !== 'undefined') {
         try {
-          // Request account access directly - this will open MetaMask popup
           const accounts = await window.ethereum.request({
             method: 'eth_requestAccounts',
           });
@@ -238,27 +471,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           if (accounts.length > 0) {
             const address = accounts[0];
             
-            // Get network information
             const chainId = await window.ethereum.request({
               method: 'eth_chainId',
             });
 
-            // Get balance
             const balance = await window.ethereum.request({
               method: 'eth_getBalance',
               params: [address, 'latest'],
             });
 
-            // Convert balance from wei to ETH
             const ethBalance = parseInt(balance, 16) / Math.pow(10, 18);
 
-            console.log('Successfully connected to MetaMask:', { 
-              address, 
-              chainId, 
-              balance: ethBalance.toFixed(4) + ' ETH' 
-            });
-
-            // Update user with wallet info
             const updatedUser = {
               ...user,
               address: address,
@@ -273,13 +496,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
             localStorage.setItem('walletAddress', address);
 
-            // Listen for account changes
             window.ethereum.on('accountsChanged', (accounts: string[]) => {
               if (accounts.length === 0) {
-                // User disconnected wallet
                 disconnectWallet();
               } else {
-                // User switched accounts
                 const newAddress = accounts[0];
                 const updatedUserWithNewAddress = { ...updatedUser, address: newAddress };
                 setUser(updatedUserWithNewAddress);
@@ -288,10 +508,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
               }
             });
 
-            // Listen for chain changes
             window.ethereum.on('chainChanged', (chainId: string) => {
               console.log('Chain changed to:', chainId);
-              // Optionally reload the page or update UI based on new chain
             });
 
           } else {
@@ -307,7 +525,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           }
         }
       } else {
-        // MetaMask is not installed - provide clear instructions
         throw new Error('MetaMask wallet not detected. Please install MetaMask browser extension first.');
       }
     } catch (error: any) {
@@ -334,7 +551,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       localStorage.removeItem('walletAddress');
     }
 
-    // Remove event listeners
     if (window.ethereum && window.ethereum.removeAllListeners) {
       window.ethereum.removeAllListeners('accountsChanged');
       window.ethereum.removeAllListeners('chainChanged');
@@ -374,46 +590,79 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
-  // Load user from localStorage on mount
+  // Auto-login on app start
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    const authToken = localStorage.getItem('authToken');
-    
-    if (savedUser && authToken) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        parsedUser.createdAt = new Date(parsedUser.createdAt);
-        parsedUser.lastLogin = new Date(parsedUser.lastLogin);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
+    const initializeAuth = async () => {
+      const savedUser = localStorage.getItem('currentUser');
+      const authToken = localStorage.getItem('authToken');
+      
+      if (savedUser && authToken) {
+        try {
+          // Verify token is still valid
+          const response = await makeApiCall('/auth/me');
+          const userData = {
+            ...response.user,
+            createdAt: new Date(response.user.createdAt),
+            lastLogin: new Date(response.user.lastLogin)
+          };
+          
+          setUser(userData);
+          setIsAuthenticated(true);
 
-        // If user had a wallet connected, verify it's still connected
-        if (parsedUser.walletConnected && typeof window.ethereum !== 'undefined') {
-          window.ethereum.request({ method: 'eth_accounts' })
-            .then((accounts: string[]) => {
-              if (accounts.length === 0 || !parsedUser.address) {
-                // Wallet disconnected, update user state
+          // Check wallet connection
+          if (userData.walletConnected && typeof window.ethereum !== 'undefined') {
+            try {
+              const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+              if (accounts.length === 0 || !userData.address) {
                 disconnectWallet();
               }
-            })
-            .catch(() => {
-              // Error checking accounts, disconnect wallet
+            } catch (error) {
               disconnectWallet();
-            });
+            }
+          }
+        } catch (error) {
+          // Token expired or invalid, try to refresh
+          try {
+            await refreshToken();
+            const parsedUser = JSON.parse(savedUser);
+            parsedUser.createdAt = new Date(parsedUser.createdAt);
+            parsedUser.lastLogin = new Date(parsedUser.lastLogin);
+            setUser(parsedUser);
+            setIsAuthenticated(true);
+          } catch (refreshError) {
+            logout();
+          }
         }
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  // Auto-refresh token before expiry
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      try {
+        await refreshToken();
       } catch (error) {
-        console.error('Error loading saved user:', error);
+        console.error('Token refresh failed:', error);
         logout();
       }
-    }
-  }, []);
+    }, 50 * 60 * 1000); // Refresh every 50 minutes
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   return (
     <UserContext.Provider value={{
       user,
       setUser,
       login,
+      loginWithGoogle,
       signup,
+      signupWithGoogle,
       logout,
       connectWallet,
       disconnectWallet,

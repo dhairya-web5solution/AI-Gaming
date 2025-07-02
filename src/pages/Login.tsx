@@ -10,7 +10,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login, isLoading } = useUser();
+  const { login, loginWithGoogle, isLoading } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,13 +29,17 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log('Google login - would integrate with Google OAuth');
-    setError('Google login coming soon!');
+  const handleGoogleLogin = async () => {
+    setError('');
+    try {
+      await loginWithGoogle();
+      navigate('/');
+    } catch (error: any) {
+      setError(error.message || 'Google login failed. Please try again.');
+    }
   };
 
   const handleDiscordLogin = () => {
-    console.log('Discord login - would integrate with Discord OAuth');
     setError('Discord login coming soon!');
   };
 
@@ -164,7 +168,8 @@ export default function Login() {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={handleGoogleLogin}
-              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
+              disabled={isLoading}
+              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
                 <span className="text-gray-900 text-xs font-bold">G</span>
@@ -174,7 +179,8 @@ export default function Login() {
             
             <button
               onClick={handleDiscordLogin}
-              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2"
+              disabled={isLoading}
+              className="bg-gray-700/50 hover:bg-gray-600/50 text-white py-3 rounded-lg font-medium transition-colors border border-gray-600 hover:border-gray-500 flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">D</span>

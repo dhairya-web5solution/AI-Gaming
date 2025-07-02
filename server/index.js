@@ -9,6 +9,7 @@ import { AIProcessor } from './ai/processor.js';
 import { ContextAnalyzer } from './ai/contextAnalyzer.js';
 import { SessionManager } from './utils/sessionManager.js';
 import { Logger } from './utils/logger.js';
+import authRoutes from './routes/auth.js';
 
 const app = express();
 const server = createServer(app);
@@ -37,10 +38,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "ws://localhost:8080", "wss://localhost:8080"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'", "ws://localhost:8080", "wss://localhost:8080", "https://accounts.google.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
+      frameSrc: ["https://accounts.google.com"],
     },
   },
 }));
@@ -75,6 +77,9 @@ app.get('/health', (req, res) => {
     connections: wss.clients.size
   });
 });
+
+// Auth routes
+app.use('/api/auth', authRoutes);
 
 // AI Chat endpoint (REST fallback)
 app.post('/api/chat', async (req, res) => {
@@ -286,4 +291,5 @@ server.listen(PORT, () => {
   console.log(`🚀 AI Gaming Assistant Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔌 WebSocket: ws://localhost:${PORT}`);
+  console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
 });
