@@ -77,11 +77,11 @@ declare global {
 }
 
 // API Configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
+const API_BASE_URL = import.meta.env.MODE === 'production' 
   ? 'https://your-api-domain.com/api' 
   : 'http://localhost:8080/api';
 
-const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com';
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -284,7 +284,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   // Use mock API in development, real API in production
-  const makeApiCall = process.env.NODE_ENV === 'production' ? apiCall : mockApiCall;
+  const makeApiCall = import.meta.env.MODE === 'production' ? apiCall : mockApiCall;
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
