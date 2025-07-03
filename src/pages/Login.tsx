@@ -11,7 +11,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
-  const { login, loginWithGoogle, isLoading, googleAvailable } = useUser();
+  const { login, isLoading } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,18 +29,6 @@ export default function Login() {
       setTimeout(() => navigate('/'), 1500);
     } catch (error: any) {
       setError(error.message || 'Login failed. Please try again.');
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError('');
-    setSuccess('');
-    try {
-      await loginWithGoogle();
-      setSuccess('Google login successful! Redirecting...');
-      setTimeout(() => navigate('/'), 1500);
-    } catch (error: any) {
-      setError(error.message || 'Google login failed. Please try again.');
     }
   };
 
@@ -164,45 +152,11 @@ export default function Login() {
               ) : (
                 <>
                   <span>Sign In</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="my-8 flex items-center">
-            <div className="flex-1 border-t border-white/10"></div>
-            <span className="px-6 text-gray-400 text-sm font-medium">or continue with</span>
-            <div className="flex-1 border-t border-white/10"></div>
-          </div>
-
-          {/* Social Login Options */}
-          <div className="space-y-3">
-            <button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="w-full bg-white/5 hover:bg-white/10 text-white py-4 rounded-xl font-medium transition-all duration-200 border border-white/10 hover:border-white/20 flex items-center justify-center space-x-3 disabled:opacity-50 group"
-            >
-              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                <span className="text-gray-900 text-xs font-bold">G</span>
-              </div>
-              <span>Continue with Google</span>
-              {!googleAvailable && (
-                <span className="text-xs text-yellow-400">(Demo Mode)</span>
-              )}
-            </button>
-            
-            <button
-              disabled={true}
-              className="w-full bg-white/5 text-gray-500 py-4 rounded-xl font-medium border border-white/10 flex items-center justify-center space-x-3 cursor-not-allowed"
-            >
-              <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">D</span>
-              </div>
-              <span>Discord (Coming Soon)</span>
-            </button>
-          </div>
 
           {/* Sign Up Link */}
           <div className="mt-8 text-center">

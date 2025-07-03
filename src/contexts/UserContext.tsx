@@ -39,9 +39,7 @@ interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
   signup: (username: string, email: string, password: string) => Promise<void>;
-  signupWithGoogle: () => Promise<void>;
   logout: () => void;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
@@ -51,7 +49,6 @@ interface UserContextType {
   updateStats: (stats: Partial<User['stats']>) => void;
   isLoading: boolean;
   isAuthenticated: boolean;
-  googleAvailable: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -72,84 +69,13 @@ interface UserProviderProps {
 declare global {
   interface Window {
     ethereum?: any;
-    google?: any;
-    gapi?: any;
   }
 }
-
-// For demo purposes - in production, replace with your actual Google Client ID
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'demo-client-id';
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [googleAvailable, setGoogleAvailable] = useState(false);
-  const [googleInitialized, setGoogleInitialized] = useState(false);
-
-  // Initialize Google OAuth
-  useEffect(() => {
-    const initializeGoogleAuth = async () => {
-      try {
-        // Check if we have a valid Google Client ID
-        if (GOOGLE_CLIENT_ID === 'demo-client-id' || !GOOGLE_CLIENT_ID.includes('.apps.googleusercontent.com')) {
-          console.warn('Demo mode: Google OAuth not configured with valid client ID');
-          setGoogleAvailable(false);
-          setGoogleInitialized(true);
-          return;
-        }
-
-        // Load Google Identity Services script
-        if (!window.google) {
-          const script = document.createElement('script');
-          script.src = 'https://accounts.google.com/gsi/client';
-          script.async = true;
-          script.defer = true;
-          document.head.appendChild(script);
-          
-          await new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = () => {
-              console.error('Failed to load Google Identity Services');
-              setGoogleAvailable(false);
-              setGoogleInitialized(true);
-              reject(new Error('Failed to load Google script'));
-            };
-            setTimeout(() => {
-              setGoogleAvailable(false);
-              setGoogleInitialized(true);
-              reject(new Error('Google script load timeout'));
-            }, 10000);
-          });
-        }
-
-        // Wait for the script to fully initialize
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Initialize Google OAuth
-        if (window.google && window.google.accounts) {
-          window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleGoogleCallback,
-            auto_select: false,
-            cancel_on_tap_outside: true,
-          });
-          setGoogleAvailable(true);
-          console.log('Google OAuth initialized successfully');
-        } else {
-          console.error('Google accounts API not available');
-          setGoogleAvailable(false);
-        }
-      } catch (error) {
-        console.error('Failed to initialize Google Auth:', error);
-        setGoogleAvailable(false);
-      } finally {
-        setGoogleInitialized(true);
-      }
-    };
-
-    initializeGoogleAuth();
-  }, []);
 
   // Mock API calls for development
   const mockApiCall = async (endpoint: string, options: RequestInit = {}) => {
@@ -218,53 +144,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           refreshToken: `mock-refresh-token-${Date.now()}`
         };
 
-      case '/auth/google':
-        const googleUser = users.find((u: any) => u.googleId === body.googleId);
-        if (googleUser) {
-          // Login existing Google user
-          googleUser.lastLogin = new Date();
-          localStorage.setItem('registeredUsers', JSON.stringify(users));
-          const { password: ___, ...existingGoogleUser } = googleUser;
-          return {
-            user: existingGoogleUser,
-            token: `mock-jwt-token-${Date.now()}`,
-            refreshToken: `mock-refresh-token-${Date.now()}`
-          };
-        } else {
-          // Register new Google user
-          const newGoogleUser = {
-            id: `user_${Date.now()}`,
-            username: body.name.replace(/\s+/g, '').toLowerCase() + Math.floor(Math.random() * 1000),
-            email: body.email,
-            googleId: body.googleId,
-            authProvider: 'google',
-            avatar: body.picture,
-            level: 1,
-            xp: 0,
-            isOnboarded: false,
-            walletConnected: false,
-            bio: '',
-            location: '',
-            website: '',
-            twitter: '',
-            github: '',
-            phone: '',
-            balances: { AGT: 100, NFT: 0, TOUR: 0, GOV: 0, ETH: 0 },
-            stats: { gamesPlayed: 0, totalEarnings: 0, winRate: 0, rank: 999999 },
-            createdAt: new Date(),
-            lastLogin: new Date()
-          };
-          
-          users.push(newGoogleUser);
-          localStorage.setItem('registeredUsers', JSON.stringify(users));
-          
-          return {
-            user: newGoogleUser,
-            token: `mock-jwt-token-${Date.now()}`,
-            refreshToken: `mock-refresh-token-${Date.now()}`
-          };
-        }
-
       case '/auth/refresh':
         const token = localStorage.getItem('authToken');
         if (!token) {
@@ -288,47 +167,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
       default:
         throw new Error('Endpoint not found');
-    }
-  };
-
-  const handleGoogleCallback = async (response: any) => {
-    try {
-      setIsLoading(true);
-      
-      // Decode the JWT token to get user info
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      
-      const googleUserData = {
-        googleId: payload.sub,
-        email: payload.email,
-        name: payload.name,
-        picture: payload.picture,
-        email_verified: payload.email_verified
-      };
-
-      const authResponse = await mockApiCall('/auth/google', {
-        method: 'POST',
-        body: JSON.stringify(googleUserData),
-      });
-
-      const userData = {
-        ...authResponse.user,
-        createdAt: new Date(authResponse.user.createdAt),
-        lastLogin: new Date()
-      };
-
-      setUser(userData);
-      setIsAuthenticated(true);
-      localStorage.setItem('currentUser', JSON.stringify(userData));
-      localStorage.setItem('authToken', authResponse.token);
-      localStorage.setItem('refreshToken', authResponse.refreshToken);
-      
-      console.log('Google authentication successful');
-    } catch (error: any) {
-      console.error('Google login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -384,189 +222,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      setIsLoading(true);
-      
-      if (!googleInitialized) {
-        throw new Error('Google authentication is still initializing. Please wait a moment and try again.');
-      }
-
-      if (!googleAvailable) {
-        // Demo mode fallback
-        const demoGoogleUser = {
-          googleId: 'demo-google-id-' + Date.now(),
-          email: 'demo.user@gmail.com',
-          name: 'Demo Google User',
-          picture: '',
-          email_verified: true
-        };
-
-        const authResponse = await mockApiCall('/auth/google', {
-          method: 'POST',
-          body: JSON.stringify(demoGoogleUser),
-        });
-
-        const userData = {
-          ...authResponse.user,
-          createdAt: new Date(authResponse.user.createdAt),
-          lastLogin: new Date()
-        };
-
-        setUser(userData);
-        setIsAuthenticated(true);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        localStorage.setItem('authToken', authResponse.token);
-        localStorage.setItem('refreshToken', authResponse.refreshToken);
-        return;
-      }
-
-      if (!window.google || !window.google.accounts) {
-        throw new Error('Google Sign-In is not available. Please check your internet connection and try again.');
-      }
-      
-      // Try to trigger Google Sign-In popup
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback to renderButton if prompt doesn't work
-          showGoogleSignInButton();
-        }
-      });
-    } catch (error: any) {
-      console.error('Google login failed:', error);
-      throw new Error(error.message || 'Google Sign-In failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const showGoogleSignInButton = () => {
-    // Create overlay
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    `;
-
-    // Create modal
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-      background: #1f2937;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      position: relative;
-      border: 1px solid #374151;
-    `;
-
-    // Add title
-    const title = document.createElement('h3');
-    title.textContent = 'Continue with Google';
-    title.style.cssText = `
-      margin: 0 0 24px 0;
-      color: #ffffff;
-      font-size: 24px;
-      font-weight: 600;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
-
-    // Add subtitle
-    const subtitle = document.createElement('p');
-    subtitle.textContent = 'Sign in to your account or create a new one';
-    subtitle.style.cssText = `
-      margin: 0 0 32px 0;
-      color: #9ca3af;
-      font-size: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
-
-    // Create button container
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = `
-      margin: 24px 0;
-      display: flex;
-      justify-content: center;
-    `;
-
-    // Add close button
-    const closeButton = document.createElement('button');
-    closeButton.innerHTML = '×';
-    closeButton.style.cssText = `
-      position: absolute;
-      top: 16px;
-      right: 20px;
-      background: none;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      color: #9ca3af;
-      padding: 8px;
-      border-radius: 8px;
-      transition: all 0.2s;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `;
-    closeButton.onmouseover = () => {
-      closeButton.style.backgroundColor = '#374151';
-      closeButton.style.color = '#ffffff';
-    };
-    closeButton.onmouseout = () => {
-      closeButton.style.backgroundColor = 'transparent';
-      closeButton.style.color = '#9ca3af';
-    };
-    closeButton.onclick = () => {
-      document.body.removeChild(overlay);
-      setIsLoading(false);
-    };
-
-    modal.appendChild(closeButton);
-    modal.appendChild(title);
-    modal.appendChild(subtitle);
-    modal.appendChild(buttonContainer);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    // Render Google button
-    if (window.google && window.google.accounts) {
-      window.google.accounts.id.renderButton(buttonContainer, {
-        theme: 'filled_blue',
-        size: 'large',
-        text: 'continue_with',
-        shape: 'rectangular',
-        width: 280,
-        logo_alignment: 'left'
-      });
-    }
-
-    // Close on overlay click
-    overlay.onclick = (e) => {
-      if (e.target === overlay) {
-        document.body.removeChild(overlay);
-        setIsLoading(false);
-      }
-    };
-  };
-
-  const signupWithGoogle = async () => {
-    // Same as login for Google OAuth (registration happens automatically)
-    return loginWithGoogle();
-  };
-
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
@@ -579,11 +234,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     if (window.ethereum && window.ethereum.removeAllListeners) {
       window.ethereum.removeAllListeners('accountsChanged');
       window.ethereum.removeAllListeners('chainChanged');
-    }
-
-    // Sign out from Google
-    if (window.google && window.google.accounts) {
-      window.google.accounts.id.disableAutoSelect();
     }
   };
 
@@ -831,9 +481,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       user,
       setUser,
       login,
-      loginWithGoogle,
       signup,
-      signupWithGoogle,
       logout,
       connectWallet,
       disconnectWallet,
@@ -842,8 +490,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       updateBalance,
       updateStats,
       isLoading,
-      isAuthenticated,
-      googleAvailable
+      isAuthenticated
     }}>
       {children}
     </UserContext.Provider>
